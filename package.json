@@ -1,0 +1,25 @@
+{
+  "name": "twine",
+  "version": "0.0.1",
+  "description": "A minimalistic 2-way binding system",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Shopify/twine.git"
+  },
+  "keywords": [
+    "bindings",
+    "coffeescript",
+    "DOM",
+    "2-way"
+  ],
+  "author": "Shopify",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Shopify/twine/issues"
+  },
+  "homepage": "https://github.com/Shopify/twine"
+}
