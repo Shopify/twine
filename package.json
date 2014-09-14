@@ -21,5 +21,10 @@
   "bugs": {
     "url": "https://github.com/Shopify/twine/issues"
   },
-  "homepage": "https://github.com/Shopify/twine"
+  "homepage": "https://github.com/Shopify/twine",
+  "devDependencies": {
+    "chai": "~1.9.1",
+    "mocha": "~1.21.4",
+    "coffeeify": "~0.7.0"
+  }
 }

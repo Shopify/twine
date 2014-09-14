@@ -234,10 +234,11 @@ suite "Twine", ->
     test "should not run the handler when not allowed", ->
       testView = "<div bind-event-click=\"fn()\"></div>"
       node = setupView(testView, context = fn: @spy())
-      @stub(Twine.shouldDiscardEvent, "click").returns true
+      Twine.shouldDiscardEvent.click = -> true
 
       $(node).click()
       assert.equal context.fn.callCount, 0
+      Twine.shouldDiscardEvent = {}
 
     test "should pass along data if present", ->
       testView = "<form bind-event-submit=\"fn(data)\"></form>"
