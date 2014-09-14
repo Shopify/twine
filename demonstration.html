@@ -225,6 +225,28 @@ Twine.reset(context).bind().refresh();
 
 <p>Alternatively, you may use <code>bind-checked</code>, which is a one-way binding of the <code>checked</code> attribute.</p>
 
+<h2>Attribute bindings</h2>
+
+<p>The following DOM attributes can be bound to via:</p>
+
+<ul>
+  <li><code>bind-event-placeholder</code></li>
+  <li><code>bind-event-checked</code></li>
+  <li><code>bind-event-disabled</code></li>
+  <li><code>bind-event-href</code></li>
+  <li><code>bind-event-title</code></li>
+  <li><code>bind-event-readOnly</code></li>
+</ul>
+
+<div class="prepend-pre">
+<label>What are you interested in?</label>
+<input type="text" bind="yourInterest">
+<p bind-show="yourInterest">
+  Search Google for
+  <a href="#" bind-href="'https://www.google.ca/?q=' + yourInterest" bind="yourInterest" target="_blank"></a>
+</p>
+</div>
+
 <h2>Event bindings</h2>
 
 <p>DOM events are available for quick bindings.  The default behaviour (think <code>event.preventDefault</code>) will be prevented, unless either:</p>
