@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>twine.coffee</title>
+  <title>twine</title>
   <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700,400italic' rel='stylesheet' type='text/css'>
   <script src="vendor/jquery.2.1.1.min.js"></script>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
@@ -129,7 +129,7 @@
 <body>
 
 <div class="left">
-  <h1>twine.coffee</h1>
+  <h1>twine</h1>
   <p>A two-way binding system.</p>
   <pre bind="JSON.stringify(window.context, null, '  ')"></pre>
 </div>
@@ -137,7 +137,7 @@
 <div class="right">
 
 <h2>Basic bindings</h2>
-<p>Bindings are defined with strings of JavaScript directly on a DOM node. This means you're already familiar with the binding syntax, and you have access to things like the <code>length</code> property of strings.</p>
+<p>Bindings are defined with strings of JavaScript directly on a DOM node. This means you're already familiar with the binding syntax, and you have access to all the properties inside your binding definition that the underlying object does.</p>
 <p>For input elements, the initial value of a binding will be read from the DOM if it's not already defined:</p>
 
 <div class="prepend-pre">
@@ -154,12 +154,21 @@
 <pre bind="JSON.stringify(window.context)"></pre>
 </div>
 
+<p>In this demonstration, the context was defined and initialized with:</p>
+
+<pre>
+context = {};
+Twine.reset(context).bind().refresh();
+</pre>
+
 <p>The context is shown in the sidebar for reference as you peruse.</p>
+
+<h3>Sub-contexts</h3>
 
 <p>It is also possible to create sub-contexts with the <code>define</code> attribute.</p>
 
 <div class="prepend-pre">
-<div define="{name: {first: '', last: ''}}">
+<div define="{name: {first: 'John', last: 'Smith'}}">
   <label for="firstname">What is your first name?</label>
   <input id="firstname" type="text" bind="name.first">
   <label for="lastname">What is your last name?</label>
@@ -175,14 +184,14 @@
 <div class="prepend-pre">
 <div define="{showBox: true}">
   <button bind-event-click="showBox = !showBox">Toggle visibility</button>
-  <div bind-show="showBox">I'm now visible!</div>
+  <div bind-show="showBox">I'm visible!</div>
 </div>
 </div>
 
 <p>This can be pretty useful for when you want to use <code>bind-show</code> and start in a visible state.</p>
 
 <h2>Visibility bindings</h2>
-<p>Adds a class to the node that sets <code>display: none</code></p>
+<p><code>bind-show</code> adds the class <code>hide</code> to the node.  You can then use CSS like <code>.hide { display: none; }</code> or similar to hide the node and its children from view.</p>
 <div class="prepend-pre">
 <label>Enter a color:</label>
 <input type="text" bind="color">
@@ -192,7 +201,7 @@
 </div>
 
 <h2>Class bindings</h2>
-<p>Toggles a node's classes, given an object with class names for keys and booleans for values.  This won't mess with any existing classes unless you tell it to.</p>
+<p><code>bind-class</code> toggles a node's classes, given an object with class names for keys and booleans for values.</p>
 <div class="prepend-pre">
 <label>Enter a color:</label>
 <input type="text" bind="color">
@@ -216,7 +225,44 @@
 
 <p>Alternatively, you may use <code>bind-checked</code>, which is a one-way binding of the <code>checked</code> attribute.</p>
 
-<h2>Click events</h2>
+<h2>Event bindings</h2>
+
+<p>DOM events are available for quick bindings.  The default behaviour (think <code>event.preventDefault</code>) will be prevented, unless either:</p>
+
+<ul>
+  <li><code>event.type === "submit"</code></li>
+  <li>the node the event was bound on was an <code>&lt;a&gt;</code></li>
+</ul>
+
+<p>Additionally, the presence of <code>allow-default</code> attribute will cause the twine system to never prevent default, rending the two exceptions above moot.</p>
+
+<p>The following events are provided:</p>
+
+<ul>
+  <li><code>bind-event-click</code></li>
+  <li><code>bind-event-dblclick</code></li>
+  <li><code>bind-event-mousedown</code></li>
+  <li><code>bind-event-mouseup</code></li>
+  <li><code>bind-event-submit</code></li>
+  <li><code>bind-event-dragenter</code></li>
+  <li><code>bind-event-dragleave</code></li>
+  <li><code>bind-event-dragover</code></li>
+  <li><code>bind-event-drop</code></li>
+  <li><code>bind-event-drag</code></li>
+  <li><code>bind-event-click</code></li>
+  <li><code>bind-event-change</code></li>
+  <li><code>bind-event-keypress</code></li>
+  <li><code>bind-event-keydown</code></li>
+  <li><code>bind-event-keyup</code></li>
+  <li><code>bind-event-input</code></li>
+  <li><code>bind-event-error</code></li>
+  <li><code>bind-event-done</code></li>
+  <li><code>bind-event-fail</code></li>
+  <li><code>bind-event-blur</code></li>
+  <li><code>bind-event-focus</code></li>
+</ul>
+
+<h3>Example: click events</h3>
 <p>Remember how bindings are just JavaScript? The same applies for event handlers.</p>
 <div class="prepend-pre">
 <a href="#" class="green" bind-event-click="color = 'green'">green</a> or
@@ -235,8 +281,16 @@ context.toggleColor = function() {
 </script>
 
 <div class="prepend-pre">
-switch to <a href="#" bind="otherColor()" bind-event-click="toggleColor()"></a>
+Switch to <a href="#" bind="otherColor()" bind-event-click="toggleColor()"></a>
 </div>
+
+<h3>Event arguments</h3>
+<p>Events bound in this way have access to a few special named parameters:</p>
+
+<ul>
+  <li><code>this</code>: the node in question</li>
+  <li><code>event</code>: the event object that is fired</li>
+</ul>
 
 </div>
 </body>
