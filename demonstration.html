@@ -285,12 +285,32 @@ Switch to <a href="#" bind="otherColor()" bind-event-click="toggleColor()"></a>
 </div>
 
 <h3>Event arguments</h3>
-<p>Events bound in this way have access to a few special named parameters:</p>
+<p>Events bound in this way have access to a few named parameters that you can pass in:</p>
 
 <ul>
   <li><code>this</code>: the node in question</li>
   <li><code>event</code>: the event object that is fired</li>
 </ul>
+
+<script class="prepend-pre">
+context.keyPressed = function(node, event) {
+  this.whichKey = event.which;
+  this.whichInput = node.getAttribute("id");
+};
+</script>
+
+<div class="prepend-pre">
+<input id="foo" type="text" bind-event-keydown="keyPressed(this, event)" placeholder="foo">
+<input id="bar" type="text" bind-event-keydown="keyPressed(this, event)" placeholder="bar">
+<p>
+  You pressed key: <strong bind="whichKey"></strong>
+</p>
+<p>
+  inside of input with ID: <strong bind="whichInput"></strong>
+</p>
+</div>
+
+<p>Further, as you can see from the example <code>keyPressed</code> above, <code>this</code> inside of a function called this way will refer to the current context.</p>
 
 </div>
 </body>
