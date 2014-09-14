@@ -25,6 +25,7 @@
   "devDependencies": {
     "chai": "~1.9.1",
     "mocha": "~1.21.4",
-    "coffeeify": "~0.7.0"
+    "coffeeify": "~0.7.0",
+    "uglify-js": "~2.4.15"
   }
 }

@@ -13,3 +13,6 @@ TEST_FILES=$(shell find test/*.coffee)
 
 .test: $(TEST_FILES)
 	browserify $(TEST_FILES) -o test/test_bundle.js -t coffeeify
+
+.uglify: .app
+	node_modules/uglify-js/bin/uglifyjs dist/twine.js -o dist/twine.min.js
