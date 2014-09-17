@@ -1,10 +1,9 @@
 twine
 -----
 
+[Demonstration](http://shopify.github.io/twine/)
+
 Twine is a minimalistic set of 2-way bindings.  It allows you to define JS execution contexts using strings of JS defined directly on top of the DOM.
-
-For documentation and examples, see `demonstration.html`
-
 
 Contributing
 ============
