@@ -1,3 +1,4 @@
 .all
 node_modules
 test/test_bundle.js
+*.gem
