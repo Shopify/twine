@@ -1,0 +1,24 @@
+{
+  "name": "twine",
+  "version": "0.0.1",
+  "homepage": "https://github.com/Shopify/twine",
+  "authors": [
+    "Shopify Inc"
+  ],
+  "keywords": [
+    "bindings",
+    "two-way",
+    "2way",
+    "2-way",
+    "coffeescript",
+    "DOM"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "vendor",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

@@ -12,11 +12,13 @@
   },
   "keywords": [
     "bindings",
+    "two-way",
+    "2way",
+    "2-way",
     "coffeescript",
-    "DOM",
-    "2-way"
+    "DOM"
   ],
-  "author": "Shopify",
+  "author": "Shopify Inc",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Shopify/twine/issues"

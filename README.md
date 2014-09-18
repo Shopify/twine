@@ -1,5 +1,5 @@
-twine
------
+twine 0.0.1
+-----------
 
 [![Build Status](https://secure.travis-ci.org/Shopify/twine.png)](http://travis-ci.org/Shopify/twine)
 
