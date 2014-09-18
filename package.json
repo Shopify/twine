@@ -4,7 +4,7 @@
   "description": "A minimalistic 2-way binding system",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node_modules/.bin/testem"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,8 @@
     "chai": "~1.9.1",
     "mocha": "~1.21.4",
     "coffeeify": "~0.7.0",
-    "uglify-js": "~2.4.15"
+    "uglify-js": "~2.4.15",
+    "browserify": "~5.11.2",
+    "testem": "~0.6.19"
   }
 }

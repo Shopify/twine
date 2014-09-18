@@ -9,10 +9,10 @@ TEST_FILES=$(shell find test/*.coffee)
 .pretestem: .all
 
 .app: $(APP_FILES)
-	browserify $(APP_FILES) -o dist/twine.js -t coffeeify
+	node_modules/.bin/browserify $(APP_FILES) -o dist/twine.js -t coffeeify
 
 .test: $(TEST_FILES)
-	browserify $(TEST_FILES) -o test/test_bundle.js -t coffeeify
+	node_modules/.bin/browserify $(TEST_FILES) -o test/test_bundle.js -t coffeeify
 
 .uglify: .app
-	node_modules/uglify-js/bin/uglifyjs dist/twine.js -o dist/twine.min.js
+	node_modules/.bin/uglifyjs dist/twine.js -o dist/twine.min.js
