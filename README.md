@@ -104,7 +104,7 @@ $(document).ajaxComplete ->
 
 ## Releasing
 
-1. Update version number in package.json, bower.json, and twine.js.gemspec
+1. Update version number in package.json, bower.json, and twine-js.gemspec
 2. Run `bundle install` to update Gemfile.lock
 3. Push the new tag to GitHub and the new version to rubygems with `bundle exec rake release`
 

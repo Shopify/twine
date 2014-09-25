@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    twine.js (0.0.2)
+    twine-js (0.0.2)
 
 GEM
   remote: https://rubygems.org/
@@ -14,4 +14,4 @@ PLATFORMS
 DEPENDENCIES
   bundler
   rake
-  twine.js!
+  twine-js!
