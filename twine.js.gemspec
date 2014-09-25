@@ -9,4 +9,7 @@ Gem::Specification.new do |spec|
   spec.homepage      = "https://github.com/Shopify/twine"
   spec.license       = "MIT"
   spec.files         = Dir["lib/assets/javascripts/*.js.coffee", "README.md", "LICENSE"]
+
+  spec.add_development_dependency "bundler"
+  spec.add_development_dependency "rake"
 end
