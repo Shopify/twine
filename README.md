@@ -1,5 +1,5 @@
-twine 0.0.1
------------
+twine
+-----
 
 [![Build Status](https://secure.travis-ci.org/Shopify/twine.png)](http://travis-ci.org/Shopify/twine)
 
@@ -93,12 +93,17 @@ $(document).ajaxComplete ->
   Twine.refresh()
 ```
 
-Contributing
-============
+## Contributing
 
-1. Clone the repo: `git clone git@github.com:Shopify/twine.git`
+1. Clone the repo: `git clone git@github.com:Shopify/twine`
 2. `cd twine`
 3. `npm install`
 4. `npm install -g testem coffee-script`
 5. Run the tests using `testem`, or `testem ci`
 6. Submit a PR
+
+## Releasing
+
+1. Update version number in package.json, bower.json, and twine.js.gemspec
+2. Push the new tag to GitHub and the new version to rubygems with `bundle exec rake release`
+
