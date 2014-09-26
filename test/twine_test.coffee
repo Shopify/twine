@@ -315,6 +315,12 @@ suite "Twine", ->
       assert.equal context.key, "value"
       assert.equal context.key2, "value2"
 
+    test "should throw a helpful error if trying to define improperly", ->
+      testView = "<div define=\"{key: 'value', key2: 'value2\"></div>"
+      assert.throw ->
+        setupView(testView, context = {})
+      , 'Twine error: Unable to create function on DIV node with attributes define=\'{key: \'value\', key2: \'value2\''
+
   suite "refresh", ->
     test "should defer calls and refresh once", ->
       setupView("", {})

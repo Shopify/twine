@@ -149,14 +149,27 @@ setValue = (object, keypath, value) ->
     object = object[key] ?= {}
   object[lastKey] = value
 
-wrapFunctionString = (code, args) ->
+stringifyNodeAttributes = (node) ->
+  nAttributes = node.attributes.length
+  i = 0
+  result = ""
+  while i < nAttributes
+    attr = node.attributes.item(i)
+    result += "#{attr.nodeName}='#{attr.textContent}'"
+    i+=1
+  result
+
+wrapFunctionString = (code, args, node) ->
   if isKeypath(code) && keypath = keypathForKey(code)
     if keypath[0] == '$root'
       ($context, $root) -> getValue($root, keypath)
     else
       ($context, $root) -> getValue($context, keypath)
   else
-    new Function(args, "with($context) { return #{code} }")
+    try
+      new Function(args, "with($context) { return #{code} }")
+    catch e
+      throw "Twine error: Unable to create function on #{node.nodeName} node with attributes #{stringifyNodeAttributes(node)}"
 
 isKeypath = (value) ->
   value not in ['true', 'false', 'null', 'undefined'] and keypathRegex.test(value)
@@ -175,7 +188,7 @@ Twine.bindingTypes =
 
     # Radio buttons only set the value to the node value if checked.
     checkedValueType = node.getAttribute('type') == 'radio'
-    fn = wrapFunctionString(definition, '$context,$root')
+    fn = wrapFunctionString(definition, '$context,$root', node)
 
     refresh = ->
       newValue = fn.call(node, context, rootContext)
@@ -218,7 +231,7 @@ Twine.bindingTypes =
     {refresh, teardown}
 
   'bind-show': (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root')
+    fn = wrapFunctionString(definition, '$context,$root', node)
     lastValue = undefined
     return refresh: ->
       newValue = !fn.call(node, context, rootContext)
@@ -226,7 +239,7 @@ Twine.bindingTypes =
       $(node).toggleClass('hide', lastValue = newValue)
 
   'bind-class': (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root')
+    fn = wrapFunctionString(definition, '$context,$root', node)
     lastValue = {}
     return refresh: ->
       newValue = fn.call(node, context, rootContext)
@@ -235,7 +248,7 @@ Twine.bindingTypes =
       lastValue = newValue
 
   define: (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root')
+    fn = wrapFunctionString(definition, '$context,$root', node)
     object = fn.call(node, context, rootContext)
     context[key] = value for key, value of object
     return
@@ -244,7 +257,7 @@ setupAttributeBinding = (attributeName, bindingName) ->
   booleanAttribute = attributeName in ['checked', 'disabled', 'readOnly']
 
   Twine.bindingTypes["bind-#{bindingName}"] = (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root')
+    fn = wrapFunctionString(definition, '$context,$root', node)
     lastValue = undefined
     return refresh: ->
       newValue = fn.call(node, context, rootContext)
@@ -269,7 +282,7 @@ setupEventBinding = (eventName) ->
 
       return if discardEvent
 
-      wrapFunctionString(definition, '$context,$root,event,data').call(node, context, rootContext, event, data)
+      wrapFunctionString(definition, '$context,$root,event,data', node).call(node, context, rootContext, event, data)
       Twine.refreshImmediately()
     $(node).on eventName, onEventHandler
 
