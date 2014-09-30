@@ -21,6 +21,8 @@ Twine is available on bower via `bower install twine` if that is your preference
 
 Twine comes as `dist/twine.js` and `dist/twine.min.js` in this repo and in the bower package.
 
+Twine is also available as a gem.  In your Gemfile, add `gem 'twine-rails'` and include it in your `application.js` manifest via `//= require twine`
+
 ## Usage
 
 Twine can be initialized simply with the following:
@@ -104,7 +106,6 @@ $(document).ajaxComplete ->
 
 ## Releasing
 
-1. Update version number in package.json, bower.json, and twine-js.gemspec
-2. Run `bundle install` to update Gemfile.lock
+1. Update version number in `package.json`, `bower.json`, and `lib/twine-rails/version.rb`
+2. Run `bundle install` to update `Gemfile.lock`
 3. Push the new tag to GitHub and the new version to rubygems with `bundle exec rake release`
-
