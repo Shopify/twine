@@ -224,9 +224,9 @@ Twine.bindingTypes =
         return if getValue(context, keypath) == this[valueAttribute]
         refreshContext()
         Twine.refreshImmediately()
-      node.addEventListener(eventKey, changeHandler) for eventKey in ['input', 'keyup', 'change']
+      $(node).on 'input keyup change', changeHandler
       teardown = ->
-        node.removeEventListener(eventKey, changeHandler) for eventKey in ['input', 'keyup', 'change']
+        $(node).off 'input keyup change', changeHandler
 
     {refresh, teardown}
 
