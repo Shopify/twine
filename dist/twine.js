@@ -307,7 +307,7 @@ fireCustomChangeEvent = function(node) {
 
 Twine.bindingTypes = {
   bind: function(node, context, definition) {
-    var changeHandler, checkedValueType, eventKey, fn, keypath, lastValue, oldValue, refresh, refreshContext, teardown, twoWayBinding, value, valueAttribute, _i, _len, _ref;
+    var changeHandler, checkedValueType, fn, keypath, lastValue, oldValue, refresh, refreshContext, teardown, twoWayBinding, value, valueAttribute;
     valueAttribute = valueAttributeForNode(node);
     value = node[valueAttribute];
     lastValue = void 0;
@@ -359,20 +359,9 @@ Twine.bindingTypes = {
         refreshContext();
         return Twine.refreshImmediately();
       };
-      _ref = ['input', 'keyup', 'change'];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        eventKey = _ref[_i];
-        node.addEventListener(eventKey, changeHandler);
-      }
+      $(node).on('input keyup change', changeHandler);
       teardown = function() {
-        var _j, _len1, _ref1, _results;
-        _ref1 = ['input', 'keyup', 'change'];
-        _results = [];
-        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-          eventKey = _ref1[_j];
-          _results.push(node.removeEventListener(eventKey, changeHandler));
-        }
-        return _results;
+        return $(node).off('input keyup change', changeHandler);
       };
     }
     return {
