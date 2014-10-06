@@ -472,7 +472,7 @@ setupEventBinding = function(eventName) {
   };
 };
 
-_ref1 = ['click', 'dblclick', 'mousedown', 'mouseup', 'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input', 'error', 'done', 'fail', 'blur', 'focus'];
+_ref1 = ['click', 'dblclick', 'mousedown', 'mouseup', 'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input', 'error', 'done', 'fail', 'blur', 'focus', 'load'];
 for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
   eventName = _ref1[_j];
   setupEventBinding(eventName);
