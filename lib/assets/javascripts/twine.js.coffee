@@ -17,8 +17,10 @@ rootNode = null
 
 # Cleans up all existing bindings and sets the root node and context.
 Twine.reset = (newContext, node = document.documentElement) ->
-  for bindingsArr in elements
-    obj.teardown() for obj in bindingsArr when obj.teardown
+  for key of elements
+    if bindings = elements[key]?.bindings
+      obj.teardown() for obj in bindings when obj.teardown
+
   elements = {}
 
   rootContext = newContext

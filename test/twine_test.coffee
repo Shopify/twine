@@ -416,6 +416,15 @@ suite "Twine", ->
       assert.equal rootNode.bindingId, 1
       assert.equal Twine.context(rootNode), context
 
+    test "should teardown all elements in memory", ->
+      testView = "<div bind-event-click=\"fn()\"></div>"
+      node = setupView(testView, context = fn: @spy())
+      Twine.bind(node)
+      Twine.reset({}, rootNode)
+
+      $(node).click()
+      assert.equal context.fn.callCount, 0
+
   test "context should return the node's context", ->
     testView = '<div context="inner"><div context="inner"></div></div>'
     node = setupView(testView, context = {inner: {inner: {}}})
