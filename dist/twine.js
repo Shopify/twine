@@ -19,16 +19,17 @@ refreshQueued = false;
 rootNode = null;
 
 Twine.reset = function(newContext, node) {
-  var bindingsArr, obj, _i, _j, _len, _len1;
+  var bindings, key, obj, _i, _len, _ref;
   if (node == null) {
     node = document.documentElement;
   }
-  for (_i = 0, _len = elements.length; _i < _len; _i++) {
-    bindingsArr = elements[_i];
-    for (_j = 0, _len1 = bindingsArr.length; _j < _len1; _j++) {
-      obj = bindingsArr[_j];
-      if (obj.teardown) {
-        obj.teardown();
+  for (key in elements) {
+    if (bindings = (_ref = elements[key]) != null ? _ref.bindings : void 0) {
+      for (_i = 0, _len = bindings.length; _i < _len; _i++) {
+        obj = bindings[_i];
+        if (obj.teardown) {
+          obj.teardown();
+        }
       }
     }
   }
