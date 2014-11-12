@@ -253,7 +253,10 @@ suite "Twine", ->
     test "unbind should remove event listener", ->
       testView = "<div bind-event-click=\"fn()\"></div>"
       node = setupView(testView, context = fn: @spy())
+
+      assert node.bindingId
       Twine.unbind(node)
+      assert.isUndefined node.bindingId
 
       $(node).click()
       assert.equal context.fn.callCount, 0
