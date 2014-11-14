@@ -88,6 +88,9 @@ Twine.unbind = (node) ->
     if bindings = elements[id]?.bindings
       obj.teardown() for obj in bindings when obj.teardown
     delete elements[id]
+    delete node.bindingId
+
+
   # IE and Safari don't support node.children for DocumentFragment or SVGElement,
   # See explaination in bind()
   Twine.unbind(childNode) for childNode in (node.children || [])

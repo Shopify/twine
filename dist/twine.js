@@ -144,6 +144,7 @@ Twine.unbind = function(node) {
       }
     }
     delete elements[id];
+    delete node.bindingId;
   }
   _ref1 = node.children || [];
   for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
