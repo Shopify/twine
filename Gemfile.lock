@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    twine-rails (0.0.8)
+    twine-rails (0.0.9)
       coffee-rails
 
 GEM
