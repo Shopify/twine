@@ -230,6 +230,12 @@ suite "Twine", ->
       node = setupView(testView, key: "&amp;")
       assert.equal node.innerHTML, "&amp;"
 
+  suite "bind-src attribute", ->
+    test "should set the src of the node", ->
+      testView = '<img bind-src="key"></div>'
+      node = setupView(testView, key: "image.jpg")
+      assert.match node.src, /\/image\.jpg$/
+
   suite "bind-event-* attribute", ->
     test "should not run the handler when not allowed", ->
       testView = "<div bind-event-click=\"fn()\"></div>"

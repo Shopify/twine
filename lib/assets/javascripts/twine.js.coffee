@@ -270,7 +270,7 @@ setupAttributeBinding = (attributeName, bindingName) ->
       return if newValue == lastValue
       node[attributeName] = lastValue = newValue
 
-for attribute in ['placeholder', 'checked', 'disabled', 'href', 'title', 'readOnly']
+for attribute in ['placeholder', 'checked', 'disabled', 'href', 'title', 'readOnly', 'src']
   setupAttributeBinding(attribute, attribute)
 
 setupAttributeBinding('innerHTML', 'unsafe-html')

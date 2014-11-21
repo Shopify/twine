@@ -438,7 +438,7 @@ setupAttributeBinding = function(attributeName, bindingName) {
   };
 };
 
-_ref = ['placeholder', 'checked', 'disabled', 'href', 'title', 'readOnly'];
+_ref = ['placeholder', 'checked', 'disabled', 'href', 'title', 'readOnly', 'src'];
 for (_i = 0, _len = _ref.length; _i < _len; _i++) {
   attribute = _ref[_i];
   setupAttributeBinding(attribute, attribute);
