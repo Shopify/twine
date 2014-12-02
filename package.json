@@ -1,6 +1,6 @@
 {
   "name": "twine",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "A minimalistic 2-way binding system",
   "main": "index.js",
   "scripts": {
