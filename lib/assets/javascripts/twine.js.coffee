@@ -84,6 +84,8 @@ Twine.change = (node, bubble = false) ->
 
 # Cleans up everything related to a node and its subtree.
 Twine.unbind = (node) ->
+  return unless node
+
   if id = node.bindingId
     if bindings = elements[id]?.bindings
       obj.teardown() for obj in bindings when obj.teardown

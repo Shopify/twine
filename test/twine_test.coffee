@@ -418,6 +418,32 @@ suite "Twine", ->
       $(node).click()
       assert.isTrue context.fn.calledOnce
 
+  suite "unbind", ->
+    test "should unbind a previously bound node", ->
+      testView = "<div bind='test'></div>"
+      node = setupView(testView, context = {})
+
+      assert node.bindingId
+
+      Twine.unbind(node)
+
+      assert.isUndefined node.bindingId
+
+    test "should unbind children", ->
+      testView = "<div bind='test'><div bind='somethingElse'></div></div>"
+      node = setupView(testView, context = {})
+
+      assert node.bindingId
+      assert node.firstChild.bindingId
+
+      Twine.unbind(node)
+
+      assert.isUndefined node.bindingId
+      assert.isUndefined node.firstChild.bindingId
+
+    test "should ignore undefned nodes", ->
+      assert.isUndefined Twine.unbind(undefined)
+
   suite "reset", ->
     test "should set up the root node", ->
       Twine.reset(context = {}, rootNode)
