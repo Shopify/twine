@@ -134,6 +134,9 @@ Twine.change = function(node, bubble) {
 
 Twine.unbind = function(node) {
   var bindings, childNode, id, obj, _i, _j, _len, _len1, _ref, _ref1;
+  if (!node) {
+    return;
+  }
   if (id = node.bindingId) {
     if (bindings = (_ref = elements[id]) != null ? _ref.bindings : void 0) {
       for (_i = 0, _len = bindings.length; _i < _len; _i++) {
