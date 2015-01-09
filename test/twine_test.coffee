@@ -1,3 +1,5 @@
+require('pbind')
+
 suite "Twine", ->
   setupView = (html, context) ->
     rootNode.innerHTML = html
