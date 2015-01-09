@@ -48,6 +48,11 @@ bind = (context, node, forceSaveContext) ->
       keypath = keypath.slice(1)
     context = getValue(context, keypath) || setValue(context, keypath, {})
 
+  finalization = null
+  if context?.bindingsFinished?
+    finalization =  context.bindingsFinished
+    context.bindingsFinished = null
+
   if element || newContextKey || forceSaveContext
     (element ?= {}).childContext = context
     elements[node.bindingId ?= ++nodeCount] = element
@@ -59,6 +64,11 @@ bind = (context, node, forceSaveContext) ->
   # As a result, Twine are unsupported within DocumentFragment and SVGElement nodes.
   bind(context, childNode) for childNode in (node.children || [])
   Twine.count = nodeCount
+
+  if finalization
+    context.bindingsFinished = finalization
+    finalization.bind(context)()
+
   Twine
 
 # Queues a refresh of the DOM, batching up calls for the current synchronous block.

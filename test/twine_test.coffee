@@ -418,6 +418,39 @@ suite "Twine", ->
       $(node).click()
       assert.isTrue context.fn.calledOnce
 
+  suite "bindingsFinished", ->
+    test "bindingsFinished is called after a node and its children have completed binding", ->
+      testView = '<div define="{bindingsFinished: function() { this.finished = true }}"></div>'
+      node = setupView(testView, context = {})
+
+      assert.isTrue context.finished
+
+    test "bindingsFinished is only called on the defining node", ->
+      testView = '<div define="{called: 0, innerCalled: 0, bindingsFinished: function() { this.called++ }}"><div define="{bindingsFinished: function() { this.innerCalled++ }}"></div></div>'
+      node = setupView(testView, context = {})
+
+      assert.equal 1, context.called
+      assert.equal 1, context.innerCalled
+
+    test "bindingsFinished with object", ->
+      inner = bindingsFinished: -> this.finished = true
+      testView = "<div context=\"inner\"></div>"
+      setupView(testView, inner: inner)
+
+      assert.isTrue inner.finished
+
+    test "bindingsFinished rebind calls bindingsFinished again", ->
+      inner = bindingsFinished: -> this.finished = true
+      testView = "<div context=\"inner\"></div>"
+      node = setupView(testView, inner: inner)
+
+      assert.isTrue inner.finished
+
+      inner.finished = false
+      Twine.reset(inner, rootNode).bind()
+
+      assert.isTrue inner.finished
+
   suite "reset", ->
     test "should set up the root node", ->
       Twine.reset(context = {}, rootNode)

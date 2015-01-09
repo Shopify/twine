@@ -51,7 +51,7 @@ Twine.bind = function(node, context) {
 };
 
 bind = function(context, node, forceSaveContext) {
-  var binding, childNode, definition, element, fn, keypath, newContextKey, type, _i, _len, _ref, _ref1;
+  var binding, childNode, definition, element, finalization, fn, keypath, newContextKey, type, _i, _len, _ref, _ref1;
   if (node.bindingId) {
     Twine.unbind(node);
   }
@@ -79,6 +79,11 @@ bind = function(context, node, forceSaveContext) {
     }
     context = getValue(context, keypath) || setValue(context, keypath, {});
   }
+  finalization = null;
+  if ((context != null ? context.bindingsFinished : void 0) != null) {
+    finalization = context.bindingsFinished;
+    context.bindingsFinished = null;
+  }
   if (element || newContextKey || forceSaveContext) {
     (element != null ? element : element = {}).childContext = context;
     elements[node.bindingId != null ? node.bindingId : node.bindingId = ++nodeCount] = element;
@@ -89,6 +94,10 @@ bind = function(context, node, forceSaveContext) {
     bind(context, childNode);
   }
   Twine.count = nodeCount;
+  if (finalization) {
+    context.bindingsFinished = finalization;
+    finalization.bind(context)();
+  }
   return Twine;
 };
 
