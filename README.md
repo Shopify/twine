@@ -95,6 +95,23 @@ $(document).ajaxComplete ->
   Twine.refresh()
 ```
 
+## bindingsFinished
+
+When a node and its children are finished binding Twine checks the context for a function `bindingsFinished` and calls it if its present. This function will only be called once per context.
+
+Example:
+
+```html
+<div define="bindingsFinished: function() { console.log("done"); }"></div>
+
+<script>
+  var foo = { bindingsFinished: function() { console.log("done"); } }
+</script>
+
+<div context="foo">
+</div>
+```
+
 ## Contributing
 
 1. Clone the repo: `git clone git@github.com:Shopify/twine`
