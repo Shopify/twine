@@ -15,6 +15,8 @@ keypathRegex = /^[a-z]\w*(\.[a-z]\w*|\[\d+\])*$/i # Tests if a string is a pure 
 refreshQueued = false
 rootNode = null
 
+currentBindingCallbacks = null
+
 # Cleans up all existing bindings and sets the root node and context.
 Twine.reset = (newContext, node = document.documentElement) ->
   for key of elements
@@ -32,7 +34,14 @@ Twine.reset = (newContext, node = document.documentElement) ->
 Twine.bind = (node = rootNode, context = Twine.context(node)) ->
   bind(context, node, true)
 
+Twine.register = (callback) ->
+  if currentBindingCallbacks
+    currentBindingCallbacks.push(callback)
+  else
+    callback()
+
 bind = (context, node, forceSaveContext) ->
+  currentBindingCallbacks = []
   if node.bindingId
     Twine.unbind(node)
 
@@ -48,14 +57,11 @@ bind = (context, node, forceSaveContext) ->
       keypath = keypath.slice(1)
     context = getValue(context, keypath) || setValue(context, keypath, {})
 
-  finalization = null
-  if context?.bindingsFinished?
-    finalization =  context.bindingsFinished
-    context.bindingsFinished = null
-
   if element || newContextKey || forceSaveContext
     (element ?= {}).childContext = context
     elements[node.bindingId ?= ++nodeCount] = element
+
+  callbacks = currentBindingCallbacks
 
   # IE and Safari don't support node.children for DocumentFragment and SVGElement nodes.
   # If the element supports children we continue to traverse the children, otherwise
@@ -65,9 +71,9 @@ bind = (context, node, forceSaveContext) ->
   bind(context, childNode) for childNode in (node.children || [])
   Twine.count = nodeCount
 
-  if finalization
-    context.bindingsFinished = finalization
-    finalization.bind(context)()
+  for callback in callbacks
+    callback()
+  currentBindingCallbacks = null
 
   Twine
 

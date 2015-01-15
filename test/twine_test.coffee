@@ -420,38 +420,60 @@ suite "Twine", ->
       $(node).click()
       assert.isTrue context.fn.calledOnce
 
-  suite "bindingsFinished", ->
-    test "bindingsFinished is called after a node and its children have completed binding", ->
-      testView = '<div define="{bindingsFinished: function() { this.finished = true }}"></div>'
+  suite "Twine.register", ->
+    test "callbacks are passed the context they were defined within", ->
+      class window.CallbackTestThing
+        called: 0
+        constructor: ->
+          Twine.register =>
+            @called++
+
+      testView = '''
+      <div id="outerContext" context="outer" define="{outer: new CallbackTestThing}">
+        <div id="innerContext" context="inner" define="{inner: new CallbackTestThing}"></div>
+      </div>
+      '''
+
       node = setupView(testView, context = {})
 
-      assert.isTrue context.finished
+      assert.equal 1, Twine.context(node).outer.called
+      assert.equal 1, Twine.context(node).outer.inner.called
 
-    test "bindingsFinished is only called on the defining node", ->
-      testView = '<div define="{called: 0, innerCalled: 0, bindingsFinished: function() { this.called++ }}"><div define="{bindingsFinished: function() { this.innerCalled++ }}"></div></div>'
-      node = setupView(testView, context = {})
+    test "callbacks can be defined on the rootContext", ->
+      called = false
+      Twine.register(-> called = true)
 
-      assert.equal 1, context.called
-      assert.equal 1, context.innerCalled
+      setupView("<div></div>", context = {})
+      assert.isTrue called
 
-    test "bindingsFinished with object", ->
-      inner = bindingsFinished: -> this.finished = true
-      testView = "<div context=\"inner\"></div>"
-      setupView(testView, inner: inner)
+    test "rebind calls callbacks again", ->
+      class window.CallbackTestThing
+        @called: 0
+        called: 0
+        constructor: ->
+          Twine.register =>
+            @called++
+            @constructor.called++
 
-      assert.isTrue inner.finished
+      testView = '<div context="inner" define="{inner: new CallbackTestThing}"></div>'
+      node = setupView(testView, inner = {})
 
-    test "bindingsFinished rebind calls bindingsFinished again", ->
-      inner = bindingsFinished: -> this.finished = true
-      testView = "<div context=\"inner\"></div>"
-      node = setupView(testView, inner: inner)
+      assert.equal 1, Twine.context(node).inner.called
+      assert.equal 1, Twine.context(node).inner.constructor.called
 
-      assert.isTrue inner.finished
+      Twine.bind()
 
-      inner.finished = false
-      Twine.reset(inner, rootNode).bind()
+      assert.equal 1, Twine.context(node).inner.called
+      assert.equal 2, Twine.context(node).inner.constructor.called
 
-      assert.isTrue inner.finished
+    test "run the callback even if bindings have finished", ->
+      called = false
+
+      setupView("<div></div>", context = {})
+      assert.isFalse called
+
+      Twine.register(-> called = true)
+      assert.isTrue called
 
   suite "reset", ->
     test "should set up the root node", ->

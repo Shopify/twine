@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var attribute, bind, elements, eventName, fireCustomChangeEvent, getContext, getValue, isKeypath, keypathForKey, keypathRegex, nodeCount, preventDefaultForEvent, refreshElement, refreshQueued, rootContext, rootNode, setValue, setupAttributeBinding, setupEventBinding, stringifyNodeAttributes, valueAttributeForNode, wrapFunctionString, _i, _j, _len, _len1, _ref, _ref1,
+var attribute, bind, currentBindingCallbacks, elements, eventName, fireCustomChangeEvent, getContext, getValue, isKeypath, keypathForKey, keypathRegex, nodeCount, preventDefaultForEvent, refreshElement, refreshQueued, rootContext, rootNode, setValue, setupAttributeBinding, setupEventBinding, stringifyNodeAttributes, valueAttributeForNode, wrapFunctionString, _i, _j, _len, _len1, _ref, _ref1,
   __slice = [].slice;
 
 window.Twine = {};
@@ -17,6 +17,8 @@ keypathRegex = /^[a-z]\w*(\.[a-z]\w*|\[\d+\])*$/i;
 refreshQueued = false;
 
 rootNode = null;
+
+currentBindingCallbacks = null;
 
 Twine.reset = function(newContext, node) {
   var bindings, key, obj, _i, _len, _ref;
@@ -50,8 +52,17 @@ Twine.bind = function(node, context) {
   return bind(context, node, true);
 };
 
+Twine.register = function(callback) {
+  if (currentBindingCallbacks) {
+    return currentBindingCallbacks.push(callback);
+  } else {
+    return callback();
+  }
+};
+
 bind = function(context, node, forceSaveContext) {
-  var binding, childNode, definition, element, finalization, fn, keypath, newContextKey, type, _i, _len, _ref, _ref1;
+  var binding, callback, callbacks, childNode, definition, element, fn, keypath, newContextKey, type, _i, _j, _len, _len1, _ref, _ref1;
+  currentBindingCallbacks = [];
   if (node.bindingId) {
     Twine.unbind(node);
   }
@@ -79,25 +90,22 @@ bind = function(context, node, forceSaveContext) {
     }
     context = getValue(context, keypath) || setValue(context, keypath, {});
   }
-  finalization = null;
-  if ((context != null ? context.bindingsFinished : void 0) != null) {
-    finalization = context.bindingsFinished;
-    context.bindingsFinished = null;
-  }
   if (element || newContextKey || forceSaveContext) {
     (element != null ? element : element = {}).childContext = context;
     elements[node.bindingId != null ? node.bindingId : node.bindingId = ++nodeCount] = element;
   }
+  callbacks = currentBindingCallbacks;
   _ref1 = node.children || [];
   for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
     childNode = _ref1[_i];
     bind(context, childNode);
   }
   Twine.count = nodeCount;
-  if (finalization) {
-    context.bindingsFinished = finalization;
-    finalization.bind(context)();
+  for (_j = 0, _len1 = callbacks.length; _j < _len1; _j++) {
+    callback = callbacks[_j];
+    callback();
   }
+  currentBindingCallbacks = null;
   return Twine;
 };
 

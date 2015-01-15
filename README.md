@@ -95,21 +95,21 @@ $(document).ajaxComplete ->
   Twine.refresh()
 ```
 
-## bindingsFinished
+## Twine.register
 
-When a node and its children are finished binding Twine checks the context for a function `bindingsFinished` and calls it if its present. This function will only be called once per context.
+Optionally register a callback that will be called when the context that registers it is finished binding.
 
 Example:
 
+```coffee
+  class Foo
+    constructor: ->
+      Twine.register ->
+        console.log("done")
+```
+
 ```html
-<div define="bindingsFinished: function() { console.log("done"); }"></div>
-
-<script>
-  var foo = { bindingsFinished: function() { console.log("done"); } }
-</script>
-
-<div context="foo">
-</div>
+<div context='bar' define='{bar: new Foo}'></div>
 ```
 
 ## Contributing
