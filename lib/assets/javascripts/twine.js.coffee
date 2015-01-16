@@ -71,7 +71,7 @@ bind = (context, node, forceSaveContext) ->
   bind(context, childNode) for childNode in (node.children || [])
   Twine.count = nodeCount
 
-  for callback in callbacks
+  for callback in callbacks || []
     callback()
   currentBindingCallbacks = null
 

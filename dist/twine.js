@@ -61,7 +61,7 @@ Twine.register = function(callback) {
 };
 
 bind = function(context, node, forceSaveContext) {
-  var binding, callback, callbacks, childNode, definition, element, fn, keypath, newContextKey, type, _i, _j, _len, _len1, _ref, _ref1;
+  var binding, callback, callbacks, childNode, definition, element, fn, keypath, newContextKey, type, _i, _j, _len, _len1, _ref, _ref1, _ref2;
   currentBindingCallbacks = [];
   if (node.bindingId) {
     Twine.unbind(node);
@@ -101,8 +101,9 @@ bind = function(context, node, forceSaveContext) {
     bind(context, childNode);
   }
   Twine.count = nodeCount;
-  for (_j = 0, _len1 = callbacks.length; _j < _len1; _j++) {
-    callback = callbacks[_j];
+  _ref2 = callbacks || [];
+  for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
+    callback = _ref2[_j];
     callback();
   }
   currentBindingCallbacks = null;
