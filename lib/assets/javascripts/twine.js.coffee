@@ -15,6 +15,8 @@ keypathRegex = /^[a-z]\w*(\.[a-z]\w*|\[\d+\])*$/i # Tests if a string is a pure 
 refreshQueued = false
 rootNode = null
 
+currentBindingCallbacks = null
+
 # Cleans up all existing bindings and sets the root node and context.
 Twine.reset = (newContext, node = document.documentElement) ->
   for key of elements
@@ -32,7 +34,14 @@ Twine.reset = (newContext, node = document.documentElement) ->
 Twine.bind = (node = rootNode, context = Twine.context(node)) ->
   bind(context, node, true)
 
+Twine.register = (callback) ->
+  if currentBindingCallbacks
+    currentBindingCallbacks.push(callback)
+  else
+    callback()
+
 bind = (context, node, forceSaveContext) ->
+  currentBindingCallbacks = []
   if node.bindingId
     Twine.unbind(node)
 
@@ -52,6 +61,8 @@ bind = (context, node, forceSaveContext) ->
     (element ?= {}).childContext = context
     elements[node.bindingId ?= ++nodeCount] = element
 
+  callbacks = currentBindingCallbacks
+
   # IE and Safari don't support node.children for DocumentFragment and SVGElement nodes.
   # If the element supports children we continue to traverse the children, otherwise
   # we stop traversing that subtree.
@@ -59,6 +70,11 @@ bind = (context, node, forceSaveContext) ->
   # As a result, Twine are unsupported within DocumentFragment and SVGElement nodes.
   bind(context, childNode) for childNode in (node.children || [])
   Twine.count = nodeCount
+
+  for callback in callbacks || []
+    callback()
+  currentBindingCallbacks = null
+
   Twine
 
 # Queues a refresh of the DOM, batching up calls for the current synchronous block.

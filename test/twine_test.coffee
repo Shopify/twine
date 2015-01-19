@@ -1,3 +1,5 @@
+require('pbind')
+
 suite "Twine", ->
   setupView = (html, context) ->
     rootNode.innerHTML = html
@@ -417,6 +419,61 @@ suite "Twine", ->
 
       $(node).click()
       assert.isTrue context.fn.calledOnce
+
+  suite "Twine.register", ->
+    test "callbacks are passed the context they were defined within", ->
+      class window.CallbackTestThing
+        called: 0
+        constructor: ->
+          Twine.register =>
+            @called++
+
+      testView = '''
+      <div id="outerContext" context="outer" define="{outer: new CallbackTestThing}">
+        <div id="innerContext" context="inner" define="{inner: new CallbackTestThing}"></div>
+      </div>
+      '''
+
+      node = setupView(testView, context = {})
+
+      assert.equal 1, Twine.context(node).outer.called
+      assert.equal 1, Twine.context(node).outer.inner.called
+
+    test "callbacks can be defined on the rootContext", ->
+      called = false
+      Twine.register(-> called = true)
+
+      setupView("<div></div>", context = {})
+      assert.isTrue called
+
+    test "rebind calls callbacks again", ->
+      class window.CallbackTestThing
+        @called: 0
+        called: 0
+        constructor: ->
+          Twine.register =>
+            @called++
+            @constructor.called++
+
+      testView = '<div context="inner" define="{inner: new CallbackTestThing}"></div>'
+      node = setupView(testView, inner = {})
+
+      assert.equal 1, Twine.context(node).inner.called
+      assert.equal 1, Twine.context(node).inner.constructor.called
+
+      Twine.bind()
+
+      assert.equal 1, Twine.context(node).inner.called
+      assert.equal 2, Twine.context(node).inner.constructor.called
+
+    test "run the callback even if bindings have finished", ->
+      called = false
+
+      setupView("<div></div>", context = {})
+      assert.isFalse called
+
+      Twine.register(-> called = true)
+      assert.isTrue called
 
   suite "reset", ->
     test "should set up the root node", ->

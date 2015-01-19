@@ -95,6 +95,26 @@ $(document).ajaxComplete ->
   Twine.refresh()
 ```
 
+## Twine.register
+
+Registers a function to be called when the currently binding node and its children have finished binding.
+
+Example:
+
+```coffee
+  class Foo
+    constructor: ->
+      Twine.register ->
+        console.log("done")
+
+    # other methods needed in the context
+    # ...
+```
+
+```html
+<div context='bar' define='{bar: new Foo}'></div>
+```
+
 ## Contributing
 
 1. Clone the repo: `git clone git@github.com:Shopify/twine`
