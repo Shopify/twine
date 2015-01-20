@@ -653,6 +653,13 @@ suite "Twine", ->
     assert.equal Twine.context(node), context
     assert.equal Twine.context(node.firstChild), context.inner
 
+  test "context should return null if the node has no context", ->
+    testView = '<div context="inner"><div context="inner"></div></div>'
+    rootNode.innerHTML = testView
+    node = rootNode.children[0]
+
+    assert.equal null, Twine.context(node)
+
   test "childContext should return the node's childrens' context", ->
     testView = '<div context="inner"><div context="inner"></div></div>'
     node = setupView(testView, context = {inner: {inner: {}}})
