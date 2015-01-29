@@ -2,6 +2,7 @@ twine
 -----
 
 [![Gem Version](https://badge.fury.io/rb/twine-rails.svg)](http://badge.fury.io/rb/twine-rails)
+[![Bower version](https://badge.fury.io/bo/twine.svg)](http://badge.fury.io/bo/twine)
 [![Build Status](https://secure.travis-ci.org/Shopify/twine.png)](http://travis-ci.org/Shopify/twine)
 
 [Demonstration](http://shopify.github.io/twine/)
