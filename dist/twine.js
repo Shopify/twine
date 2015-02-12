@@ -286,7 +286,7 @@ stringifyNodeAttributes = function(node) {
   result = "";
   while (i < nAttributes) {
     attr = node.attributes.item(i);
-    result += "" + attr.nodeName + "='" + attr.textContent + "'";
+    result += attr.nodeName + "='" + attr.textContent + "'";
     i += 1;
   }
   return result;
