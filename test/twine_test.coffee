@@ -206,6 +206,17 @@ suite "Twine", ->
       Twine.refreshImmediately()
       assert.isFalse node.checked
 
+    test "should fire bindings:change on check change", ->
+      testView = "<input type=\"checkbox\" bind-checked=\"key\">"
+      node = setupView(testView, context = key: true)
+
+      node.addEventListener('bindings:change', eventSpy = @spy())
+
+      context.key = false
+      Twine.refreshImmediately()
+
+      assert.ok eventSpy.called
+
   suite "bind-placeholder attribute", ->
     test "should set the placeholder attribute", ->
       testView = "<div bind-placeholder=\"key\">"

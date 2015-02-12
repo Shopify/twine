@@ -286,7 +286,7 @@ stringifyNodeAttributes = function(node) {
   result = "";
   while (i < nAttributes) {
     attr = node.attributes.item(i);
-    result += "" + attr.nodeName + "='" + attr.textContent + "'";
+    result += attr.nodeName + "='" + attr.textContent + "'";
     i += 1;
   }
   return result;
@@ -450,7 +450,10 @@ setupAttributeBinding = function(attributeName, bindingName) {
         if (newValue === lastValue) {
           return;
         }
-        return node[attributeName] = lastValue = newValue;
+        node[attributeName] = lastValue = newValue;
+        if (attributeName === 'checked') {
+          return fireCustomChangeEvent(node);
+        }
       }
     };
   };

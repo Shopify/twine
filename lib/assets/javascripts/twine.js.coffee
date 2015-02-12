@@ -286,6 +286,8 @@ setupAttributeBinding = (attributeName, bindingName) ->
       return if newValue == lastValue
       node[attributeName] = lastValue = newValue
 
+      fireCustomChangeEvent(node) if attributeName == 'checked'
+
 for attribute in ['placeholder', 'checked', 'disabled', 'href', 'title', 'readOnly', 'src']
   setupAttributeBinding(attribute, attribute)
 
