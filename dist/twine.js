@@ -286,7 +286,7 @@ stringifyNodeAttributes = function(node) {
   result = "";
   while (i < nAttributes) {
     attr = node.attributes.item(i);
-    result += attr.nodeName + "='" + attr.textContent + "'";
+    result += "" + attr.nodeName + "='" + attr.textContent + "'";
     i += 1;
   }
   return result;
@@ -495,7 +495,7 @@ setupEventBinding = function(eventName) {
   };
 };
 
-_ref1 = ['click', 'dblclick', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input', 'error', 'done', 'success', 'fail', 'blur', 'focus', 'load'];
+_ref1 = ['click', 'dblclick', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input', 'error', 'done', 'success', 'fail', 'blur', 'focus', 'load'];
 for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
   eventName = _ref1[_j];
   setupEventBinding(eventName);
