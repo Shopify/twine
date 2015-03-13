@@ -268,6 +268,15 @@ Twine.bindingTypes =
         $(node).toggleClass(key, !!value)
       lastValue = newValue
 
+  'bind-attribute': (node, context, definition) ->
+    fn = wrapFunctionString(definition, '$context,$root', node)
+    lastValue = {}
+    return refresh: ->
+      newValue = fn.call(node, context, rootContext)
+      for key, value of newValue when lastValue[key] != value
+        $(node).attr(key, value)
+      lastValue = newValue
+
   define: (node, context, definition) ->
     fn = wrapFunctionString(definition, '$context,$root', node)
     object = fn.call(node, context, rootContext)

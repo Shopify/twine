@@ -196,6 +196,17 @@ suite "Twine", ->
       node = setupView(testView, key: true)
       assert.equal node.className, "cls"
 
+  suite "bind-attribute attribute", ->
+    test "should apply the given attribute when truthy", ->
+      testView = "<div bind-attribute=\"{a: key, b: false, c: 0, d: null, e: undefined, f: function() { return true }}\"></div>"
+      node = setupView(testView, key: true)
+      assert.equal node.getAttribute('a'), 'true'
+      assert.equal node.getAttribute('b'), 'false'
+      assert.equal node.getAttribute('c'), '0'
+      assert.isFalse node.hasAttribute('d')
+      assert.isFalse node.hasAttribute('e')
+      assert.equal node.getAttribute('f'), 'true'
+
   suite "bind-checked attribute", ->
     test "should set the checked attribute", ->
       testView = "<input type=\"checkbox\" bind-checked=\"key\">"
