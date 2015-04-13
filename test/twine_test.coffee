@@ -354,6 +354,35 @@ suite "Twine", ->
         setupView(testView, context = {})
       , 'Twine error: Unable to create function on DIV node with attributes define=\'{key: \'value\', key2: \'value2\''
 
+  suite "eval attribute", ->
+    test "should call the given code", ->
+      testView = "<span eval='myArray.push(\"stuff\")'></span>"
+
+      setupView(testView, context = {myArray: []})
+
+      assert.deepEqual ["stuff"], context.myArray
+
+    test "should work with define", ->
+      testView = "<div define='{myArray: []}''><span eval='myArray.push(\"stuff\")'></span></div>"
+
+      setupView(testView, context = {})
+
+      assert.deepEqual ["stuff"], context.myArray
+
+    test "should not mix in the result of eval", ->
+      testView = "<div eval='{thing: \"stuff\"}'></div>"
+
+      setupView(testView, context = {})
+
+      assert.isUndefined context.thing
+
+    test "should throw a helpful error if trying to eval improperly", ->
+      testView = "<div define='{myArray: []}'><span eval='myArray.push(\"stuff)'></span></div>"
+
+      assert.throw ->
+        setupView(testView, context = {})
+      , "Twine error: Unable to create function on SPAN node with attributes eval='myArray.push(\"stuff)'"
+
   suite "refresh", ->
     test "should defer calls and refresh once", ->
       setupView("", {})

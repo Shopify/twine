@@ -286,6 +286,11 @@ Twine.bindingTypes =
     context[key] = value for key, value of object
     return
 
+  eval: (node, context, definition) ->
+    fn = wrapFunctionString(definition, '$context,$root', node)
+    fn.call(node, context, rootContext)
+    return
+
 setupAttributeBinding = (attributeName, bindingName) ->
   booleanAttribute = attributeName in ['checked', 'disabled', 'readOnly']
 
