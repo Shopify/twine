@@ -45,15 +45,12 @@ bind = (context, node, forceSaveContext) ->
   if node.bindingId
     Twine.unbind(node)
 
-  for attribute in node.attributes
-    if binding = Twine.bindingTypes[attribute.name.toLowerCase()]
-      element = {bindings: []} unless element  # Defer allocation to prevent GC pressure
-      fn = binding(node, context, attribute.value, element)
-      element.bindings.push(fn) if fn
-    else if attribute.name == 'context'
-      newContextKey = attribute.value
+  for type, binding of Twine.bindingTypes when definition = node.getAttribute(type)
+    element = {bindings: []} unless element  # Defer allocation to prevent GC pressure
+    fn = binding(node, context, definition, element)
+    element.bindings.push(fn) if fn
 
-  if newContextKey
+  if newContextKey = node.getAttribute('context')
     keypath = keypathForKey(newContextKey)
     if keypath[0] == '$root'
       context = rootContext
@@ -294,7 +291,7 @@ Twine.bindingTypes =
 setupAttributeBinding = (attributeName, bindingName) ->
   booleanAttribute = attributeName in ['checked', 'disabled', 'readOnly']
 
-  Twine.bindingTypes["bind-#{bindingName.toLowerCase()}"] = (node, context, definition) ->
+  Twine.bindingTypes["bind-#{bindingName}"] = (node, context, definition) ->
     fn = wrapFunctionString(definition, '$context,$root', node)
     lastValue = undefined
     return refresh: ->
