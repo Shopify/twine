@@ -61,29 +61,28 @@ Twine.register = function(callback) {
 };
 
 bind = function(context, node, forceSaveContext) {
-  var attribute, binding, callback, callbacks, childNode, element, fn, j, k, keypath, l, len, len1, len2, newContextKey, ref, ref1, ref2;
+  var binding, callback, callbacks, childNode, definition, element, fn, j, k, keypath, len, len1, newContextKey, ref, ref1, ref2, type;
   currentBindingCallbacks = [];
   if (node.bindingId) {
     Twine.unbind(node);
   }
-  ref = node.attributes;
-  for (j = 0, len = ref.length; j < len; j++) {
-    attribute = ref[j];
-    if (binding = Twine.bindingTypes[attribute.name.toLowerCase()]) {
-      if (!element) {
-        element = {
-          bindings: []
-        };
-      }
-      fn = binding(node, context, attribute.value, element);
-      if (fn) {
-        element.bindings.push(fn);
-      }
-    } else if (attribute.name === 'context') {
-      newContextKey = attribute.value;
+  ref = Twine.bindingTypes;
+  for (type in ref) {
+    binding = ref[type];
+    if (!(definition = node.getAttribute(type))) {
+      continue;
+    }
+    if (!element) {
+      element = {
+        bindings: []
+      };
+    }
+    fn = binding(node, context, definition, element);
+    if (fn) {
+      element.bindings.push(fn);
     }
   }
-  if (newContextKey) {
+  if (newContextKey = node.getAttribute('context')) {
     keypath = keypathForKey(newContextKey);
     if (keypath[0] === '$root') {
       context = rootContext;
@@ -97,14 +96,14 @@ bind = function(context, node, forceSaveContext) {
   }
   callbacks = currentBindingCallbacks;
   ref1 = node.children || [];
-  for (k = 0, len1 = ref1.length; k < len1; k++) {
-    childNode = ref1[k];
+  for (j = 0, len = ref1.length; j < len; j++) {
+    childNode = ref1[j];
     bind(context, childNode);
   }
   Twine.count = nodeCount;
   ref2 = callbacks || [];
-  for (l = 0, len2 = ref2.length; l < len2; l++) {
-    callback = ref2[l];
+  for (k = 0, len1 = ref2.length; k < len1; k++) {
+    callback = ref2[k];
     callback();
   }
   currentBindingCallbacks = null;
@@ -460,7 +459,7 @@ Twine.bindingTypes = {
 setupAttributeBinding = function(attributeName, bindingName) {
   var booleanAttribute;
   booleanAttribute = attributeName === 'checked' || attributeName === 'disabled' || attributeName === 'readOnly';
-  return Twine.bindingTypes["bind-" + (bindingName.toLowerCase())] = function(node, context, definition) {
+  return Twine.bindingTypes["bind-" + bindingName] = function(node, context, definition) {
     var fn, lastValue;
     fn = wrapFunctionString(definition, '$context,$root', node);
     lastValue = void 0;
