@@ -274,7 +274,7 @@ Twine.bindingTypes =
     return refresh: ->
       newValue = fn.call(node, context, rootContext)
       for key, value of newValue when lastValue[key] != value
-        $(node).attr(key, value)
+        $(node).attr(key, value || null)
       lastValue = newValue
 
   define: (node, context, definition) ->
