@@ -471,12 +471,12 @@ suite "Twine", ->
       $(node).click()
       assert.isTrue context.fn.calledOnce
 
-  suite "Twine.register", ->
+  suite "Twine.afterBound", ->
     test "callbacks are passed the context they were defined within", ->
       class window.CallbackTestThing
         called: 0
         constructor: ->
-          Twine.register =>
+          Twine.afterBound =>
             @called++
 
       testView = '''
@@ -492,7 +492,7 @@ suite "Twine", ->
 
     test "callbacks can be defined on the rootContext", ->
       called = false
-      Twine.register(-> called = true)
+      Twine.afterBound(-> called = true)
 
       setupView("<div></div>", context = {})
       assert.isTrue called
@@ -502,7 +502,7 @@ suite "Twine", ->
         @called: 0
         called: 0
         constructor: ->
-          Twine.register =>
+          Twine.afterBound =>
             @called++
             @constructor.called++
 
@@ -523,7 +523,7 @@ suite "Twine", ->
       setupView("<div></div>", context = {})
       assert.isFalse called
 
-      Twine.register(-> called = true)
+      Twine.afterBound(-> called = true)
       assert.isTrue called
 
   suite "reset", ->

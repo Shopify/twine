@@ -34,7 +34,7 @@ Twine.reset = (newContext, node = document.documentElement) ->
 Twine.bind = (node = rootNode, context = Twine.context(node)) ->
   bind(context, node, true)
 
-Twine.register = (callback) ->
+Twine.afterBound = (callback) ->
   if currentBindingCallbacks
     currentBindingCallbacks.push(callback)
   else
