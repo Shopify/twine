@@ -52,7 +52,7 @@ Twine.bind = function(node, context) {
   return bind(context, node, true);
 };
 
-Twine.register = function(callback) {
+Twine.afterBound = function(callback) {
   if (currentBindingCallbacks) {
     return currentBindingCallbacks.push(callback);
   } else {

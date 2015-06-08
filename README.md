@@ -97,7 +97,7 @@ $(document).ajaxComplete ->
   Twine.refresh()
 ```
 
-## Twine.register
+## Twine.afterBound
 
 Registers a function to be called when the currently binding node and its children have finished binding.
 
@@ -106,7 +106,7 @@ Example:
 ```coffee
   class Foo
     constructor: ->
-      Twine.register ->
+      Twine.afterBound ->
         console.log("done")
 
     # other methods needed in the context
