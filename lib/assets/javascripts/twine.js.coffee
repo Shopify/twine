@@ -213,7 +213,7 @@ Twine.bindingTypes =
 
     refresh = ->
       newValue = fn.call(node, context, rootContext)
-      return if newValue == lastValue
+      return if newValue == lastValue # return if we can and avoid a DOM operation
 
       lastValue = newValue
       return if newValue == node[valueAttribute]
