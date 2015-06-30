@@ -117,6 +117,18 @@ Example:
 <div context='bar' define='{bar: new Foo}'></div>
 ```
 
+## Twine.shouldDiscardEvent
+
+Lets you register a function to ignore certain events in order to improve performance. If the function you set returns true, then the event processing chain will be halted
+
+Example:
+
+```coffee
+  Twine.shouldDiscardEvent.click = (event) ->
+    $target = $(event.target)
+    $target.hasClass('disabled')
+```
+
 ## Contributing
 
 1. Clone the repo: `git clone git@github.com:Shopify/twine`
