@@ -129,6 +129,16 @@ Example:
     $target.hasClass('disabled')
 ```
 
+## Dev Console
+
+To get the current context in the dev console, inspect an element then type:
+
+```javascript
+Twine.context($0)
+```
+
+Where context expects a node and `$0` is shorthand for the current node in the dev console.
+
 ## Contributing
 
 1. Clone the repo: `git clone git@github.com:Shopify/twine`
