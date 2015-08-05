@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    twine-rails (0.1.0)
+    twine-rails (0.1.1)
       coffee-rails
 
 GEM
@@ -73,3 +73,6 @@ DEPENDENCIES
   bundler
   rake
   twine-rails!
+
+BUNDLED WITH
+   1.10.6

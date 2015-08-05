@@ -433,7 +433,7 @@ Twine.bindingTypes = {
         for (key in newValue) {
           value = newValue[key];
           if (lastValue[key] !== value) {
-            $(node).attr(key, value);
+            $(node).attr(key, value || null);
           }
         }
         return lastValue = newValue;
