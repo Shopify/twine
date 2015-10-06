@@ -385,6 +385,108 @@ suite "Twine", ->
         setupView(testView, context = {})
       , "Twine error: Unable to create function on SPAN node with attributes eval='myArray.push(\"stuff)'"
 
+  suite "data- attributes", ->
+    test "data-bind should map to bind", ->
+      testView = "<div data-bind=\"key\"></div>"
+      node = setupView(testView, key: "value")
+      assert.equal node.innerHTML, "value"
+
+    test "data-bind-show should map to bind-show", ->
+      testView = "<div data-bind-show=\"key\"></div>"
+      node = setupView(testView, key: false)
+      assert.equal node.className, "hide"
+
+    test "data-bind-class should map to bind-class", ->
+      testView = "<div data-bind-class=\"{cls: key, cls2: false}\"></div>"
+      node = setupView(testView, key: true)
+      assert.equal node.className, "cls"
+
+    test "data-bind-attribute should map to bind-attribute", ->
+      testView = "<div data-bind-attribute=\"{a: key}\"></div>"
+      node = setupView(testView, key: true)
+      assert.equal node.getAttribute('a'), 'true'
+
+    test "data-bind-checked should map to bind-checked", ->
+      testView = "<input type=\"checkbox\" data-bind-checked=\"key\">"
+      node = setupView(testView, context = key: true)
+      assert.isTrue node.checked
+
+    test "data-bind-placeholder should map to bind-placeholder", ->
+      testView = "<div data-bind-placeholder=\"key\">"
+      node = setupView(testView, context = key: "val")
+      assert.equal node.placeholder, "val"
+
+    test "data-bind-readonly should map to bind-readonly", ->
+      testView = "<input type=\"text\" data-bind-readonly=\"key\">"
+      node = setupView(testView, context = key: true)
+      assert.isTrue node.readOnly
+
+    test "data-bind-unsafe-html should map to bind-unsafe-html", ->
+      testView = "<div data-bind-unsafe-html=\"key\"></div>"
+      node = setupView(testView, key: "&amp;")
+      assert.equal node.innerHTML, "&amp;"
+
+    test "data-bind-src should map to bind-src", ->
+      testView = '<img data-bind-src="key"></div>'
+      node = setupView(testView, key: "image.jpg")
+      assert.match node.src, /\/image\.jpg$/
+
+    test "data-bind-event-click should map to bind-event-click", ->
+      testView = "<div data-bind-event-click=\"fn()\"></div>"
+      node = setupView(testView, context = fn: @spy())
+
+      $(node).click()
+      assert.isTrue context.fn.calledOnce
+
+    test "data-bind-event-submit should map to bind-event-submit", ->
+      testView = "<form data-bind-event-submit=\"fn()\"></form>"
+      node = setupView(testView, context = fn: @spy())
+
+      triggerEvent node, "submit"
+      assert.isTrue context.fn.calledOnce
+
+    test "data-bind-event-change should map to bind-event-change", ->
+      testView = "<input data-bind-event-change=\"fn()\" value=\"old\">"
+      node = setupView(testView, context = fn: @spy())
+      node.value = "new"
+
+      triggerEvent node, "change"
+      assert.isTrue context.fn.calledOnce
+
+    test "data-bind-event-error should map to bind-event-error", ->
+      testView = "<img src=\"\" data-bind-event-error=\"fn()\">"
+      node = setupView(testView, context = fn: @spy())
+
+      triggerEvent node, "error"
+      assert.isTrue context.fn.calledOnce
+
+    test "data-bind-event-done should map to bind-event-done", ->
+      testView = "<form bind-event-done=\"fn()\"></form>"
+      node = setupView(testView, context = fn: @spy())
+
+      triggerEvent node, "done"
+      assert.isTrue context.fn.calledOnce
+
+    test "data-bind-event-fail should map to bind-event-fail", ->
+      testView = "<form data-bind-event-fail=\"fn()\"></form>"
+      node = setupView(testView, context = fn: @spy())
+
+      triggerEvent node, "fail"
+      assert.isTrue context.fn.calledOnce
+
+    test "data-define should map to define", ->
+      testView = "<div data-define=\"{key: 'value'}\"></div>"
+      setupView(testView, context = {})
+
+      assert.equal context.key, "value"
+
+    test "data-eval should map to eval", ->
+      testView = "<span data-eval='myArray.push(\"stuff\")'></span>"
+
+      setupView(testView, context = {myArray: []})
+
+      assert.deepEqual ["stuff"], context.myArray
+
   suite "refresh", ->
     test "should defer calls and refresh once", ->
       setupView("", {})
