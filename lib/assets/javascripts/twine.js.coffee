@@ -45,7 +45,7 @@ bind = (context, node, forceSaveContext) ->
   if node.bindingId
     Twine.unbind(node)
 
-  for type, binding of Twine.bindingTypes when definition = node.getAttribute(type)
+  for type, binding of Twine.bindingTypes when definition = (node.getAttribute(type) || node.getAttribute("data-#{type}"))
     element = {bindings: []} unless element  # Defer allocation to prevent GC pressure
     fn = binding(node, context, definition, element)
     element.bindings.push(fn) if fn

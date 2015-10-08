@@ -69,7 +69,7 @@ bind = function(context, node, forceSaveContext) {
   ref = Twine.bindingTypes;
   for (type in ref) {
     binding = ref[type];
-    if (!(definition = node.getAttribute(type))) {
+    if (!(definition = node.getAttribute(type) || node.getAttribute("data-" + type))) {
       continue;
     }
     if (!element) {
@@ -293,7 +293,7 @@ stringifyNodeAttributes = function(node) {
 };
 
 wrapFunctionString = function(code, args, node) {
-  var e, keypath;
+  var e, error, keypath;
   if (isKeypath(code) && (keypath = keypathForKey(code))) {
     if (keypath[0] === '$root') {
       return function($context, $root) {
@@ -307,8 +307,8 @@ wrapFunctionString = function(code, args, node) {
   } else {
     try {
       return new Function(args, "with($context) { return " + code + " }");
-    } catch (_error) {
-      e = _error;
+    } catch (error) {
+      e = error;
       throw "Twine error: Unable to create function on " + node.nodeName + " node with attributes " + (stringifyNodeAttributes(node));
     }
   }
