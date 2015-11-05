@@ -31,9 +31,9 @@ Twine can be initialized simply with the following:
 
 ```html
 <script type="text/javascript">
-  context = {}
+  var context = {};
   $(function() {
-    Twine.reset(context).bind().refresh()
+    Twine.reset(context).bind().refresh();
   });
 </script>
 ```
