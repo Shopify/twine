@@ -160,7 +160,7 @@
 <p>In this demonstration, the context was defined and initialized with:</p>
 
 <pre>
-context = {};
+var context = {};
 Twine.reset(context).bind().refresh();
 </pre>
 
@@ -299,10 +299,10 @@ Twine.reset(context).bind().refresh();
 <script class="prepend-pre">
 context.otherColor = function() {
   return this.color == "green" ? "blue" : "green";
-}
+};
 context.toggleColor = function() {
   this.color = this.otherColor();
-}
+};
 </script>
 
 <div class="prepend-pre">
