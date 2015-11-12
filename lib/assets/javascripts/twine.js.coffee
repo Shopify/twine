@@ -248,9 +248,9 @@ Twine.bindingTypes =
         return if getValue(context, keypath) == this[valueAttribute]
         refreshContext()
         Twine.refreshImmediately()
-      $(node).on 'input keyup change', changeHandler
+      node.addEventListener(eventType, changeHandler) for eventType in ['input', 'keyup', 'change']
       teardown = ->
-        $(node).off 'input keyup change', changeHandler
+        node.removeEventListener(eventType, changeHandler) for eventType in ['input', 'keyup', 'change']
 
     {refresh, teardown}
 
@@ -260,7 +260,7 @@ Twine.bindingTypes =
     return refresh: ->
       newValue = !fn.call(node, context, rootContext)
       return if newValue == lastValue
-      $(node).toggleClass('hide', lastValue = newValue)
+      node.classList.toggle('hide', lastValue = newValue)
 
   'bind-class': (node, context, definition) ->
     fn = wrapFunctionString(definition, '$context,$root', node)
@@ -268,7 +268,7 @@ Twine.bindingTypes =
     return refresh: ->
       newValue = fn.call(node, context, rootContext)
       for key, value of newValue when !lastValue[key] != !value
-        $(node).toggleClass(key, !!value)
+        node.classList.toggle(key, !!value)
       lastValue = newValue
 
   'bind-attribute': (node, context, definition) ->
@@ -277,7 +277,7 @@ Twine.bindingTypes =
     return refresh: ->
       newValue = fn.call(node, context, rootContext)
       for key, value of newValue when lastValue[key] != value
-        $(node).attr(key, value || null)
+        node.setAttribute(key, value || null)
       lastValue = newValue
 
   define: (node, context, definition) ->
@@ -324,10 +324,10 @@ setupEventBinding = (eventName) ->
 
       wrapFunctionString(definition, '$context,$root,event,data', node).call(node, context, rootContext, event, data)
       Twine.refreshImmediately()
-    $(node).on eventName, onEventHandler
+    node.addEventListener eventName, onEventHandler
 
     return teardown: ->
-      $(node).off eventName, onEventHandler
+      node.removeEventListener eventName, onEventHandler
 
 for eventName in ['click', 'dblclick', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input', 'error', 'done', 'success', 'fail', 'blur', 'focus', 'load']
   setupEventBinding(eventName)
