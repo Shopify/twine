@@ -331,7 +331,7 @@ fireCustomChangeEvent = function(node) {
 
 Twine.bindingTypes = {
   bind: function(node, context, definition) {
-    var changeHandler, checkedValueType, fn, keypath, lastValue, oldValue, refresh, refreshContext, teardown, twoWayBinding, value, valueAttribute;
+    var changeHandler, checkedValueType, eventType, fn, j, keypath, lastValue, len, oldValue, ref, refresh, refreshContext, teardown, twoWayBinding, value, valueAttribute;
     valueAttribute = valueAttributeForNode(node);
     value = node[valueAttribute];
     lastValue = void 0;
@@ -383,9 +383,20 @@ Twine.bindingTypes = {
         refreshContext();
         return Twine.refreshImmediately();
       };
-      $(node).on('input keyup change', changeHandler);
+      ref = ['input', 'keyup', 'change'];
+      for (j = 0, len = ref.length; j < len; j++) {
+        eventType = ref[j];
+        node.addEventListener(eventType, changeHandler, false);
+      }
       teardown = function() {
-        return $(node).off('input keyup change', changeHandler);
+        var k, len1, ref1, results;
+        ref1 = ['input', 'keyup', 'change'];
+        results = [];
+        for (k = 0, len1 = ref1.length; k < len1; k++) {
+          eventType = ref1[k];
+          results.push(node.removeEventListener(eventType, changeHandler, false));
+        }
+        return results;
       };
     }
     return {
@@ -404,7 +415,11 @@ Twine.bindingTypes = {
         if (newValue === lastValue) {
           return;
         }
-        return $(node).toggleClass('hide', lastValue = newValue);
+        if (lastValue = newValue) {
+          return node.classList.add('hide');
+        } else {
+          return node.classList.remove('hide');
+        }
       }
     };
   },
@@ -419,7 +434,11 @@ Twine.bindingTypes = {
         for (key in newValue) {
           value = newValue[key];
           if (!lastValue[key] !== !value) {
-            $(node).toggleClass(key, !!value);
+            if (!!value) {
+              node.classList.add(key);
+            } else {
+              node.classList.remove(key);
+            }
           }
         }
         return lastValue = newValue;
@@ -437,7 +456,14 @@ Twine.bindingTypes = {
         for (key in newValue) {
           value = newValue[key];
           if (lastValue[key] !== value) {
-            $(node).attr(key, value || null);
+            if (value) {
+              if (typeof value === 'function') {
+                value = value.call();
+              }
+              node.setAttribute(key, value);
+            } else {
+              node.removeAttribute(key);
+            }
           }
         }
         return lastValue = newValue;
@@ -513,10 +539,10 @@ setupEventBinding = function(eventName) {
       wrapFunctionString(definition, '$context,$root,event,data', node).call(node, context, rootContext, event, data);
       return Twine.refreshImmediately();
     };
-    $(node).on(eventName, onEventHandler);
+    node.addEventListener(eventName, onEventHandler, false);
     return {
       teardown: function() {
-        return $(node).off(eventName, onEventHandler);
+        return node.removeEventListener(eventName, onEventHandler, false);
       }
     };
   };
