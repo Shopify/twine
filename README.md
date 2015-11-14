@@ -32,9 +32,9 @@ Twine can be initialized simply with the following:
 ```html
 <script type="text/javascript">
   var context = {};
-  $(function() {
+  document.addEventListener('DOMContentLoaded', function() {
     Twine.reset(context).bind().refresh();
-  });
+  }, false);
 </script>
 ```
 
@@ -125,8 +125,7 @@ Example:
 
 ```coffee
   Twine.shouldDiscardEvent.click = (event) ->
-    $target = $(event.target)
-    $target.hasClass('disabled')
+    event.target.classList.contains('disabled')
 ```
 
 ## Dev Console
@@ -152,5 +151,5 @@ Where context expects a node and `$0` is shorthand for the current node in the d
 
 1. Update version number in `package.json`, `bower.json`, and `lib/twine-rails/version.rb`
 2. Run `bundle install` to update `Gemfile.lock`
-3. Run make .all && make .uglify to update JS
+3. Run `make .all && make .uglify` to update JS
 4. Push the new tag to GitHub and the new version to rubygems with `bundle exec rake release`
