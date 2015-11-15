@@ -325,7 +325,7 @@ preventDefaultForEvent = (event) ->
 
 setupEventBinding = (eventName) ->
   Twine.bindingTypes["bind-event-#{eventName}"] = (node, context, definition) ->
-    onEventHandler = (event, data) ->
+    onEventHandler = (event, data = event.detail) ->
       discardEvent = Twine.shouldDiscardEvent[eventName]?(event)
       if discardEvent || preventDefaultForEvent(event)
         event.preventDefault()

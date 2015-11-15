@@ -280,7 +280,7 @@ suite "Twine", ->
       triggerEvent node, 'submit', data
 
       assert.isTrue context.fn.calledOnce
-      assert.isTrue context.fn.calledWith(data), 'fn called with data'
+      assert.isTrue context.fn.calledWith(data)
 
     test "unbind should remove event listener", ->
       testView = "<div bind-event-click=\"fn()\"></div>"

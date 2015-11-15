@@ -529,6 +529,9 @@ setupEventBinding = function(eventName) {
     var onEventHandler;
     onEventHandler = function(event, data) {
       var discardEvent, _base;
+      if (data == null) {
+        data = event.detail;
+      }
       discardEvent = typeof (_base = Twine.shouldDiscardEvent)[eventName] === "function" ? _base[eventName](event) : void 0;
       if (discardEvent || preventDefaultForEvent(event)) {
         event.preventDefault();
