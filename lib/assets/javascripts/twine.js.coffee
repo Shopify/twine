@@ -120,6 +120,9 @@ getContext = (node, child) ->
   while node
     return rootContext if node == rootNode
     node = node.parentNode if !child
+    if !node
+      console.warn "Unable to find context; please check that the node is attached to the DOM that Twine has bound, or that bindings have been initiated on this node's DOM"
+      return null
     if (id = node.bindingId) && (context = elements[id]?.childContext)
       return context
     node = node.parentNode if child
