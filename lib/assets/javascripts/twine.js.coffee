@@ -248,9 +248,9 @@ Twine.bindingTypes =
         return if getValue(context, keypath) == this[valueAttribute]
         refreshContext()
         Twine.refreshImmediately()
-      $(node).on 'input keyup change', changeHandler
+      node.addEventListener(eventType, changeHandler, false) for eventType in ['input', 'keyup', 'change']
       teardown = ->
-        $(node).off 'input keyup change', changeHandler
+        node.removeEventListener(eventType, changeHandler, false) for eventType in ['input', 'keyup', 'change']
 
     {refresh, teardown}
 
@@ -260,7 +260,10 @@ Twine.bindingTypes =
     return refresh: ->
       newValue = !fn.call(node, context, rootContext)
       return if newValue == lastValue
-      $(node).toggleClass('hide', lastValue = newValue)
+      if lastValue = newValue
+        node.classList.add('hide')
+      else
+        node.classList.remove('hide')
 
   'bind-class': (node, context, definition) ->
     fn = wrapFunctionString(definition, '$context,$root', node)
@@ -268,7 +271,10 @@ Twine.bindingTypes =
     return refresh: ->
       newValue = fn.call(node, context, rootContext)
       for key, value of newValue when !lastValue[key] != !value
-        $(node).toggleClass(key, !!value)
+        if !!value
+          node.classList.add(key)
+        else
+          node.classList.remove(key)
       lastValue = newValue
 
   'bind-attribute': (node, context, definition) ->
@@ -277,7 +283,11 @@ Twine.bindingTypes =
     return refresh: ->
       newValue = fn.call(node, context, rootContext)
       for key, value of newValue when lastValue[key] != value
-        $(node).attr(key, value || null)
+        if value
+          value = value.call() if typeof value == 'function'
+          node.setAttribute(key, value)
+        else
+          node.removeAttribute(key)
       lastValue = newValue
 
   define: (node, context, definition) ->
@@ -315,7 +325,7 @@ preventDefaultForEvent = (event) ->
 
 setupEventBinding = (eventName) ->
   Twine.bindingTypes["bind-event-#{eventName}"] = (node, context, definition) ->
-    onEventHandler = (event, data) ->
+    onEventHandler = (event, data = event.detail) ->
       discardEvent = Twine.shouldDiscardEvent[eventName]?(event)
       if discardEvent || preventDefaultForEvent(event)
         event.preventDefault()
@@ -324,10 +334,10 @@ setupEventBinding = (eventName) ->
 
       wrapFunctionString(definition, '$context,$root,event,data', node).call(node, context, rootContext, event, data)
       Twine.refreshImmediately()
-    $(node).on eventName, onEventHandler
+    node.addEventListener eventName, onEventHandler, false
 
     return teardown: ->
-      $(node).off eventName, onEventHandler
+      node.removeEventListener eventName, onEventHandler, false
 
 for eventName in ['click', 'dblclick', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input', 'error', 'done', 'success', 'fail', 'blur', 'focus', 'load']
   setupEventBinding(eventName)

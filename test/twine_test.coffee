@@ -6,9 +6,9 @@ suite "Twine", ->
     Twine.reset(context, rootNode).bind().refreshImmediately()
     rootNode.children[0]
 
-  triggerEvent = (node, eventName) ->
-    event = document.createEvent("HTMLEvents")
-    event.initEvent eventName, false, true
+  triggerEvent = (node, eventName, data = {}) ->
+    event = document.createEvent('CustomEvent')
+    event.initCustomEvent eventName, false, true, data
     node.dispatchEvent event
 
   rootNode = undefined
@@ -268,7 +268,7 @@ suite "Twine", ->
       node = setupView(testView, context = fn: @spy())
       Twine.shouldDiscardEvent.click = -> true
 
-      $(node).click()
+      triggerEvent node, 'click'
       assert.equal context.fn.callCount, 0
       Twine.shouldDiscardEvent = {}
 
@@ -277,7 +277,7 @@ suite "Twine", ->
       node = setupView(testView, context = fn: @spy())
       data = {test: 'bla123'}
 
-      $(node).trigger 'submit', data
+      triggerEvent node, 'submit', data
 
       assert.isTrue context.fn.calledOnce
       assert.isTrue context.fn.calledWith(data)
@@ -290,7 +290,7 @@ suite "Twine", ->
       Twine.unbind(node)
       assert.isUndefined node.bindingId
 
-      $(node).click()
+      triggerEvent node, 'click'
       assert.equal context.fn.callCount, 0
 
   suite "bind-event-click attribute", ->
@@ -298,7 +298,7 @@ suite "Twine", ->
       testView = "<div bind-event-click=\"fn()\"></div>"
       node = setupView(testView, context = fn: @spy())
 
-      $(node).click()
+      triggerEvent node, 'click'
       assert.isTrue context.fn.calledOnce
 
   suite "bind-event-submit attribute", ->
@@ -435,7 +435,7 @@ suite "Twine", ->
       testView = "<div data-bind-event-click=\"fn()\"></div>"
       node = setupView(testView, context = fn: @spy())
 
-      $(node).click()
+      triggerEvent node, 'click'
       assert.isTrue context.fn.calledOnce
 
     test "data-bind-event-submit should map to bind-event-submit", ->
@@ -505,7 +505,7 @@ suite "Twine", ->
       node = setupView(testView, fn: ->)
       @spy(Twine, "refreshImmediately")
 
-      $(node).click()
+      triggerEvent node, 'click'
       @clock.tick 100
       assert.isTrue Twine.refreshImmediately.calledOnce
 
@@ -572,7 +572,7 @@ suite "Twine", ->
       node = setupView(testView, context = fn: @spy())
       Twine.bind()
 
-      $(node).click()
+      triggerEvent node, 'click'
       assert.isTrue context.fn.calledOnce
 
   suite "Twine.afterBound", ->
@@ -643,7 +643,7 @@ suite "Twine", ->
       Twine.bind(node)
       Twine.reset({}, rootNode)
 
-      $(node).click()
+      triggerEvent node, 'click'
       assert.equal context.fn.callCount, 0
 
   test "context should return the node's context", ->
