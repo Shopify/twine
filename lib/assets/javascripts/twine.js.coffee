@@ -45,12 +45,12 @@ bind = (context, node, forceSaveContext) ->
   if node.bindingId
     Twine.unbind(node)
 
-  for type, binding of Twine.bindingTypes when definition = (node.getAttribute(type) || node.getAttribute("data-#{type}"))
+  for type, binding of Twine.bindingTypes when definition = node.getAttribute("data-#{type}") || (node.getAttribute(type))
     element = {bindings: []} unless element  # Defer allocation to prevent GC pressure
     fn = binding(node, context, definition, element)
     element.bindings.push(fn) if fn
 
-  if newContextKey = node.getAttribute('context')
+  if newContextKey = node.getAttribute('context') || node.getAttribute('data-context')
     keypath = keypathForKey(newContextKey)
     if keypath[0] == '$root'
       context = rootContext
@@ -311,7 +311,9 @@ for attribute in ['placeholder', 'checked', 'disabled', 'href', 'title', 'readOn
 setupAttributeBinding('innerHTML', 'unsafe-html')
 
 preventDefaultForEvent = (event) ->
-  (event.type == 'submit' || event.currentTarget.nodeName.toLowerCase() == 'a') && event.currentTarget.getAttribute('allow-default') != '1'
+  (event.type == 'submit' || event.currentTarget.nodeName.toLowerCase() == 'a') &&
+  event.currentTarget.getAttribute('data-allow-default') != '1' &&
+  event.currentTarget.getAttribute('allow-default') != '1'
 
 setupEventBinding = (eventName) ->
   Twine.bindingTypes["bind-event-#{eventName}"] = (node, context, definition) ->
