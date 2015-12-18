@@ -20,6 +20,10 @@ rootNode = null;
 
 currentBindingCallbacks = null;
 
+Twine.getAttribute = function(node, attr) {
+  return node.getAttribute("data-" + attr) || node.getAttribute(attr);
+};
+
 Twine.reset = function(newContext, node) {
   var bindings, j, key, len, obj, ref;
   if (node == null) {
@@ -69,7 +73,7 @@ bind = function(context, node, forceSaveContext) {
   ref = Twine.bindingTypes;
   for (type in ref) {
     binding = ref[type];
-    if (!(definition = node.getAttribute("data-" + type) || (node.getAttribute(type)))) {
+    if (!(definition = Twine.getAttribute(node, type))) {
       continue;
     }
     if (!element) {
@@ -82,7 +86,7 @@ bind = function(context, node, forceSaveContext) {
       element.bindings.push(fn);
     }
   }
-  if (newContextKey = node.getAttribute('context') || node.getAttribute('data-context')) {
+  if (newContextKey = Twine.getAttribute(node, 'context')) {
     keypath = keypathForKey(newContextKey);
     if (keypath[0] === '$root') {
       context = rootContext;
@@ -495,7 +499,7 @@ for (j = 0, len = ref.length; j < len; j++) {
 setupAttributeBinding('innerHTML', 'unsafe-html');
 
 preventDefaultForEvent = function(event) {
-  return (event.type === 'submit' || event.currentTarget.nodeName.toLowerCase() === 'a') && event.currentTarget.getAttribute('data-allow-default') !== '1' && event.currentTarget.getAttribute('allow-default') !== '1';
+  return (event.type === 'submit' || event.currentTarget.nodeName.toLowerCase() === 'a') && Twine.getAttribute(event.currentTarget, 'allow-default') !== '1';
 };
 
 setupEventBinding = function(eventName) {

@@ -17,6 +17,9 @@ rootNode = null
 
 currentBindingCallbacks = null
 
+Twine.getAttribute = (node, attr) ->
+  node.getAttribute("data-#{attr}") || node.getAttribute(attr)
+
 # Cleans up all existing bindings and sets the root node and context.
 Twine.reset = (newContext, node = document.documentElement) ->
   for key of elements
@@ -45,12 +48,12 @@ bind = (context, node, forceSaveContext) ->
   if node.bindingId
     Twine.unbind(node)
 
-  for type, binding of Twine.bindingTypes when definition = node.getAttribute("data-#{type}") || (node.getAttribute(type))
+  for type, binding of Twine.bindingTypes when definition = Twine.getAttribute(node, type)
     element = {bindings: []} unless element  # Defer allocation to prevent GC pressure
     fn = binding(node, context, definition, element)
     element.bindings.push(fn) if fn
 
-  if newContextKey = node.getAttribute('context') || node.getAttribute('data-context')
+  if newContextKey = Twine.getAttribute(node, 'context')
     keypath = keypathForKey(newContextKey)
     if keypath[0] == '$root'
       context = rootContext
@@ -312,8 +315,7 @@ setupAttributeBinding('innerHTML', 'unsafe-html')
 
 preventDefaultForEvent = (event) ->
   (event.type == 'submit' || event.currentTarget.nodeName.toLowerCase() == 'a') &&
-  event.currentTarget.getAttribute('data-allow-default') != '1' &&
-  event.currentTarget.getAttribute('allow-default') != '1'
+  Twine.getAttribute(event.currentTarget, 'allow-default') != '1'
 
 setupEventBinding = (eventName) ->
   Twine.bindingTypes["bind-event-#{eventName}"] = (node, context, definition) ->
