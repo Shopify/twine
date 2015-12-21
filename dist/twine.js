@@ -1,6 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var attribute, bind, currentBindingCallbacks, elements, eventName, fireCustomChangeEvent, getContext, getValue, isKeypath, keypathForKey, keypathRegex, nodeCount, preventDefaultForEvent, refreshElement, refreshQueued, rootContext, rootNode, setValue, setupAttributeBinding, setupEventBinding, stringifyNodeAttributes, valueAttributeForNode, wrapFunctionString, _i, _j, _len, _len1, _ref, _ref1,
-  __slice = [].slice;
+var attribute, bind, currentBindingCallbacks, elements, eventName, fireCustomChangeEvent, getContext, getValue, isKeypath, j, k, keypathForKey, keypathRegex, len, len1, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, rootContext, rootNode, setValue, setupAttributeBinding, setupEventBinding, stringifyNodeAttributes, valueAttributeForNode, wrapFunctionString,
+  slice = [].slice;
 
 window.Twine = {};
 
@@ -20,15 +20,19 @@ rootNode = null;
 
 currentBindingCallbacks = null;
 
+Twine.getAttribute = function(node, attr) {
+  return node.getAttribute("data-" + attr) || node.getAttribute(attr);
+};
+
 Twine.reset = function(newContext, node) {
-  var bindings, key, obj, _i, _len, _ref;
+  var bindings, j, key, len, obj, ref;
   if (node == null) {
     node = document.documentElement;
   }
   for (key in elements) {
-    if (bindings = (_ref = elements[key]) != null ? _ref.bindings : void 0) {
-      for (_i = 0, _len = bindings.length; _i < _len; _i++) {
-        obj = bindings[_i];
+    if (bindings = (ref = elements[key]) != null ? ref.bindings : void 0) {
+      for (j = 0, len = bindings.length; j < len; j++) {
+        obj = bindings[j];
         if (obj.teardown) {
           obj.teardown();
         }
@@ -61,15 +65,15 @@ Twine.afterBound = function(callback) {
 };
 
 bind = function(context, node, forceSaveContext) {
-  var binding, callback, callbacks, childNode, definition, element, fn, keypath, newContextKey, type, _i, _j, _len, _len1, _ref, _ref1, _ref2;
+  var binding, callback, callbacks, childNode, definition, element, fn, j, k, keypath, len, len1, newContextKey, ref, ref1, ref2, type;
   currentBindingCallbacks = [];
   if (node.bindingId) {
     Twine.unbind(node);
   }
-  _ref = Twine.bindingTypes;
-  for (type in _ref) {
-    binding = _ref[type];
-    if (!(definition = node.getAttribute(type) || node.getAttribute("data-" + type))) {
+  ref = Twine.bindingTypes;
+  for (type in ref) {
+    binding = ref[type];
+    if (!(definition = Twine.getAttribute(node, type))) {
       continue;
     }
     if (!element) {
@@ -82,7 +86,7 @@ bind = function(context, node, forceSaveContext) {
       element.bindings.push(fn);
     }
   }
-  if (newContextKey = node.getAttribute('context')) {
+  if (newContextKey = Twine.getAttribute(node, 'context')) {
     keypath = keypathForKey(newContextKey);
     if (keypath[0] === '$root') {
       context = rootContext;
@@ -95,15 +99,15 @@ bind = function(context, node, forceSaveContext) {
     elements[node.bindingId != null ? node.bindingId : node.bindingId = ++nodeCount] = element;
   }
   callbacks = currentBindingCallbacks;
-  _ref1 = node.children || [];
-  for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-    childNode = _ref1[_i];
+  ref1 = node.children || [];
+  for (j = 0, len = ref1.length; j < len; j++) {
+    childNode = ref1[j];
     bind(context, childNode);
   }
   Twine.count = nodeCount;
-  _ref2 = callbacks || [];
-  for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-    callback = _ref2[_j];
+  ref2 = callbacks || [];
+  for (k = 0, len1 = ref2.length; k < len1; k++) {
+    callback = ref2[k];
     callback();
   }
   currentBindingCallbacks = null;
@@ -119,11 +123,11 @@ Twine.refresh = function() {
 };
 
 refreshElement = function(element) {
-  var obj, _i, _len, _ref;
+  var j, len, obj, ref;
   if (element.bindings) {
-    _ref = element.bindings;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      obj = _ref[_i];
+    ref = element.bindings;
+    for (j = 0, len = ref.length; j < len; j++) {
+      obj = ref[j];
       if (obj.refresh != null) {
         obj.refresh();
       }
@@ -151,11 +155,11 @@ Twine.change = function(node, bubble) {
 };
 
 Twine.unbind = function(node) {
-  var bindings, childNode, id, obj, _i, _j, _len, _len1, _ref, _ref1;
+  var bindings, childNode, id, j, k, len, len1, obj, ref, ref1;
   if (id = node.bindingId) {
-    if (bindings = (_ref = elements[id]) != null ? _ref.bindings : void 0) {
-      for (_i = 0, _len = bindings.length; _i < _len; _i++) {
-        obj = bindings[_i];
+    if (bindings = (ref = elements[id]) != null ? ref.bindings : void 0) {
+      for (j = 0, len = bindings.length; j < len; j++) {
+        obj = bindings[j];
         if (obj.teardown) {
           obj.teardown();
         }
@@ -164,9 +168,9 @@ Twine.unbind = function(node) {
     delete elements[id];
     delete node.bindingId;
   }
-  _ref1 = node.children || [];
-  for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-    childNode = _ref1[_j];
+  ref1 = node.children || [];
+  for (k = 0, len1 = ref1.length; k < len1; k++) {
+    childNode = ref1[k];
     Twine.unbind(childNode);
   }
   return this;
@@ -181,7 +185,7 @@ Twine.childContext = function(node) {
 };
 
 getContext = function(node, child) {
-  var context, id, _ref;
+  var context, id, ref;
   while (node) {
     if (node === rootNode) {
       return rootContext;
@@ -193,7 +197,7 @@ getContext = function(node, child) {
       console.warn("Unable to find context; please check that the node is attached to the DOM that Twine has bound, or that bindings have been initiated on this node's DOM");
       return null;
     }
-    if ((id = node.bindingId) && (context = (_ref = elements[id]) != null ? _ref.childContext : void 0)) {
+    if ((id = node.bindingId) && (context = (ref = elements[id]) != null ? ref.childContext : void 0)) {
       return context;
     }
     if (child) {
@@ -203,7 +207,7 @@ getContext = function(node, child) {
 };
 
 Twine.contextKey = function(node, lastContext) {
-  var addKey, context, id, keys, _ref;
+  var addKey, context, id, keys, ref;
   keys = [];
   addKey = function(context) {
     var key, val;
@@ -218,7 +222,7 @@ Twine.contextKey = function(node, lastContext) {
     return lastContext = context;
   };
   while (node && node !== rootNode && (node = node.parentNode)) {
-    if ((id = node.bindingId) && (context = (_ref = elements[id]) != null ? _ref.childContext : void 0)) {
+    if ((id = node.bindingId) && (context = (ref = elements[id]) != null ? ref.childContext : void 0)) {
       addKey(context);
     }
   }
@@ -229,10 +233,10 @@ Twine.contextKey = function(node, lastContext) {
 };
 
 valueAttributeForNode = function(node) {
-  var name, _ref;
+  var name, ref;
   name = node.nodeName.toLowerCase();
   if (name === 'input' || name === 'textarea' || name === 'select') {
-    if ((_ref = node.getAttribute('type')) === 'checkbox' || _ref === 'radio') {
+    if ((ref = node.getAttribute('type')) === 'checkbox' || ref === 'radio') {
       return 'checked';
     } else {
       return 'value';
@@ -243,11 +247,11 @@ valueAttributeForNode = function(node) {
 };
 
 keypathForKey = function(key) {
-  var end, keypath, start, _i, _len, _ref;
+  var end, j, keypath, len, ref, start;
   keypath = [];
-  _ref = key.split('.');
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    key = _ref[_i];
+  ref = key.split('.');
+  for (j = 0, len = ref.length; j < len; j++) {
+    key = ref[j];
     if ((start = key.indexOf('[')) !== -1) {
       keypath.push(key.substr(0, start));
       key = key.substr(start);
@@ -263,9 +267,9 @@ keypathForKey = function(key) {
 };
 
 getValue = function(object, keypath) {
-  var key, _i, _len;
-  for (_i = 0, _len = keypath.length; _i < _len; _i++) {
-    key = keypath[_i];
+  var j, key, len;
+  for (j = 0, len = keypath.length; j < len; j++) {
+    key = keypath[j];
     if (object != null) {
       object = object[key];
     }
@@ -274,10 +278,10 @@ getValue = function(object, keypath) {
 };
 
 setValue = function(object, keypath, value) {
-  var key, lastKey, _i, _j, _len, _ref;
-  _ref = keypath, keypath = 2 <= _ref.length ? __slice.call(_ref, 0, _i = _ref.length - 1) : (_i = 0, []), lastKey = _ref[_i++];
-  for (_j = 0, _len = keypath.length; _j < _len; _j++) {
-    key = keypath[_j];
+  var j, k, key, lastKey, len, ref;
+  ref = keypath, keypath = 2 <= ref.length ? slice.call(ref, 0, j = ref.length - 1) : (j = 0, []), lastKey = ref[j++];
+  for (k = 0, len = keypath.length; k < len; k++) {
+    key = keypath[k];
     object = object[key] != null ? object[key] : object[key] = {};
   }
   return object[lastKey] = value;
@@ -290,14 +294,14 @@ stringifyNodeAttributes = function(node) {
   result = "";
   while (i < nAttributes) {
     attr = node.attributes.item(i);
-    result += "" + attr.nodeName + "='" + attr.textContent + "'";
+    result += attr.nodeName + "='" + attr.textContent + "'";
     i += 1;
   }
   return result;
 };
 
 wrapFunctionString = function(code, args, node) {
-  var e, keypath;
+  var e, error, keypath;
   if (isKeypath(code) && (keypath = keypathForKey(code))) {
     if (keypath[0] === '$root') {
       return function($context, $root) {
@@ -311,8 +315,8 @@ wrapFunctionString = function(code, args, node) {
   } else {
     try {
       return new Function(args, "with($context) { return " + code + " }");
-    } catch (_error) {
-      e = _error;
+    } catch (error) {
+      e = error;
       throw "Twine error: Unable to create function on " + node.nodeName + " node with attributes " + (stringifyNodeAttributes(node));
     }
   }
@@ -486,24 +490,24 @@ setupAttributeBinding = function(attributeName, bindingName) {
   };
 };
 
-_ref = ['placeholder', 'checked', 'disabled', 'href', 'title', 'readOnly', 'src'];
-for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-  attribute = _ref[_i];
+ref = ['placeholder', 'checked', 'disabled', 'href', 'title', 'readOnly', 'src'];
+for (j = 0, len = ref.length; j < len; j++) {
+  attribute = ref[j];
   setupAttributeBinding(attribute, attribute);
 }
 
 setupAttributeBinding('innerHTML', 'unsafe-html');
 
 preventDefaultForEvent = function(event) {
-  return (event.type === 'submit' || event.currentTarget.nodeName.toLowerCase() === 'a') && event.currentTarget.getAttribute('allow-default') !== '1';
+  return (event.type === 'submit' || event.currentTarget.nodeName.toLowerCase() === 'a') && Twine.getAttribute(event.currentTarget, 'allow-default') !== '1';
 };
 
 setupEventBinding = function(eventName) {
   return Twine.bindingTypes["bind-event-" + eventName] = function(node, context, definition) {
     var onEventHandler;
     onEventHandler = function(event, data) {
-      var discardEvent, _base;
-      discardEvent = typeof (_base = Twine.shouldDiscardEvent)[eventName] === "function" ? _base[eventName](event) : void 0;
+      var base, discardEvent;
+      discardEvent = typeof (base = Twine.shouldDiscardEvent)[eventName] === "function" ? base[eventName](event) : void 0;
       if (discardEvent || preventDefaultForEvent(event)) {
         event.preventDefault();
       }
@@ -522,9 +526,9 @@ setupEventBinding = function(eventName) {
   };
 };
 
-_ref1 = ['click', 'dblclick', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input', 'error', 'done', 'success', 'fail', 'blur', 'focus', 'load'];
-for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-  eventName = _ref1[_j];
+ref1 = ['click', 'dblclick', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input', 'error', 'done', 'success', 'fail', 'blur', 'focus', 'load'];
+for (k = 0, len1 = ref1.length; k < len1; k++) {
+  eventName = ref1[k];
   setupEventBinding(eventName);
 }
 
