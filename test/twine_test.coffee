@@ -385,6 +385,47 @@ suite "Twine", ->
         setupView(testView, context = {})
       , "Twine error: Unable to create function on SPAN node with attributes data-eval='myArray.push(\"stuff)'"
 
+  suite "data-allow-default", ->
+    test "should prevent default action for an anchor tag", ->
+      testView = "<a data-bind-event-click=\"fn()\"></a>"
+      event = {type: 'click', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isTrue event.preventDefault.calledOnce
+
+    test "should allow default action for an anchor tag when set to 1", ->
+      testView = "<a data-bind-event-click=\"fn()\" data-allow-default=\"1\"></a>"
+      event = {type: 'click', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isFalse event.preventDefault.called
+
+    test "should prevent default action for a submit event", ->
+      testView = "<form action=\"#\" data-bind-event-submit=\"fn()\"></form>"
+      event = {type: 'submit', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isTrue event.preventDefault.calledOnce
+
+    test "should allow default action for a submit event when set to 1", ->
+      testView = "<form action=\"#\" data-bind-event-submit=\"fn()\" data-allow-default=\"1\"></form>"
+      event = {type: 'submit', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isFalse event.preventDefault.called
+
+    test "should do nothing unless an anchor tag or submit event", ->
+      testView = "<button data-bind-event-click=\"fn()\" data-allow-default=\"0\"></button>"
+      event = {type: 'click', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isFalse event.preventDefault.called
+
   suite "data-refresh", ->
     test "should defer calls and refresh once", ->
       setupView("", {})
@@ -963,6 +1004,47 @@ suite "TwineLegacy", ->
       assert.throw ->
         setupView(testView, context = {})
       , "Twine error: Unable to create function on SPAN node with attributes eval='myArray.push(\"stuff)'"
+
+  suite "allow-default", ->
+    test "should prevent default action for an anchor tag", ->
+      testView = "<a bind-event-click=\"fn()\"></a>"
+      event = {type: 'click', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isTrue event.preventDefault.calledOnce
+
+    test "should allow default action for an anchor tag when set to 1", ->
+      testView = "<a bind-event-click=\"fn()\" allow-default=\"1\"></a>"
+      event = {type: 'click', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isFalse event.preventDefault.called
+
+    test "should prevent default action for a submit event", ->
+      testView = "<form action=\"#\" bind-event-submit=\"fn()\"></form>"
+      event = {type: 'submit', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isTrue event.preventDefault.calledOnce
+
+    test "should allow default action for a submit event when set to 1", ->
+      testView = "<form action=\"#\" bind-event-submit=\"fn()\" allow-default=\"1\"></form>"
+      event = {type: 'submit', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isFalse event.preventDefault.called
+
+    test "should do nothing unless an anchor tag or submit event", ->
+      testView = "<button bind-event-click=\"fn()\" allow-default=\"0\"></button>"
+      event = {type: 'click', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isFalse event.preventDefault.called
 
   suite "refresh", ->
     test "should defer calls and refresh once", ->
