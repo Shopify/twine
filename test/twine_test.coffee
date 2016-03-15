@@ -196,6 +196,23 @@ suite "Twine", ->
       node = setupView(testView, key: true)
       assert.equal node.className, "cls"
 
+  suite "data-bind-prop attribute", ->
+    test "should apply the given prop when truthy", ->
+      testView = "<div data-bind-prop=\"{a: true_key, b: false, c: 0, d: null, e: undefined, f: string_key}\"></div>"
+      node = setupView(testView, true_key: true, string_key: "yolo")
+      assert.equal node.a, true
+      assert.isTrue node.hasOwnProperty('a')
+      assert.equal node.b, false
+      assert.isTrue node.hasOwnProperty('b')
+      assert.equal node.c, 0
+      assert.isTrue node.hasOwnProperty('c')
+      assert.equal node.d, null
+      assert.isTrue node.hasOwnProperty('d')
+      assert.equal node.e, null
+      assert.isFalse node.hasOwnProperty('e')
+      assert.equal node.f, 'yolo'
+      assert.isTrue node.hasOwnProperty('f')
+
   suite "data-bind-attribute attribute", ->
     test "should apply the given attribute when truthy", ->
       testView = "<div data-bind-attribute=\"{a: key, b: false, c: 0, d: null, e: undefined, f: function() { return true }, g: '0', h: 'false'}\"></div>"

@@ -301,7 +301,7 @@ stringifyNodeAttributes = function(node) {
 };
 
 wrapFunctionString = function(code, args, node) {
-  var e, error, keypath;
+  var e, keypath;
   if (isKeypath(code) && (keypath = keypathForKey(code))) {
     if (keypath[0] === '$root') {
       return function($context, $root) {
@@ -315,8 +315,8 @@ wrapFunctionString = function(code, args, node) {
   } else {
     try {
       return new Function(args, "with($context) { return " + code + " }");
-    } catch (error) {
-      e = error;
+    } catch (_error) {
+      e = _error;
       throw "Twine error: Unable to create function on " + node.nodeName + " node with attributes " + (stringifyNodeAttributes(node));
     }
   }
@@ -442,6 +442,24 @@ Twine.bindingTypes = {
           value = newValue[key];
           if (lastValue[key] !== value) {
             $(node).attr(key, value || null);
+          }
+        }
+        return lastValue = newValue;
+      }
+    };
+  },
+  'bind-prop': function(node, context, definition) {
+    var fn, lastValue;
+    fn = wrapFunctionString(definition, '$context,$root', node);
+    lastValue = {};
+    return {
+      refresh: function() {
+        var key, newValue, value;
+        newValue = fn.call(node, context, rootContext);
+        for (key in newValue) {
+          value = newValue[key];
+          if (lastValue[key] !== value) {
+            node[key] = value;
           }
         }
         return lastValue = newValue;
