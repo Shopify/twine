@@ -295,7 +295,7 @@ Twine.bindingTypes =
     return
 
 setupAttributeBinding = (attributeName, bindingName) ->
-  booleanAttribute = attributeName in ['checked', 'disabled', 'readOnly']
+  booleanAttribute = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly']
 
   Twine.bindingTypes["bind-#{bindingName}"] = (node, context, definition) ->
     fn = wrapFunctionString(definition, '$context,$root', node)
@@ -308,7 +308,7 @@ setupAttributeBinding = (attributeName, bindingName) ->
 
       fireCustomChangeEvent(node) if attributeName == 'checked'
 
-for attribute in ['placeholder', 'checked', 'disabled', 'href', 'title', 'readOnly', 'src']
+for attribute in ['placeholder', 'checked', 'indeterminate', 'disabled', 'href', 'title', 'readOnly', 'src']
   setupAttributeBinding(attribute, attribute)
 
 setupAttributeBinding('innerHTML', 'unsafe-html')
