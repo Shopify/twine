@@ -250,6 +250,12 @@ suite "Twine", ->
       Twine.refreshImmediately()
       assert.isFalse node.readOnly
 
+  suite "data-bind-unsafe-html attribute", ->
+    test "should set the innerHTML of the node", ->
+      testView = "<div data-bind-unsafe-html=\"key\"></div>"
+      node = setupView(testView, key: "&amp;")
+      assert.equal node.innerHTML, "&amp;"
+
   suite "data-bind-inner-text attribute", ->
     test "should set the innerText of the node", ->
       testView = "<div data-bind-inner-text=\"key\"></div>"
