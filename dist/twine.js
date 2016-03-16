@@ -301,7 +301,7 @@ stringifyNodeAttributes = function(node) {
 };
 
 wrapFunctionString = function(code, args, node) {
-  var e, error, keypath;
+  var e, keypath;
   if (isKeypath(code) && (keypath = keypathForKey(code))) {
     if (keypath[0] === '$root') {
       return function($context, $root) {
@@ -315,8 +315,8 @@ wrapFunctionString = function(code, args, node) {
   } else {
     try {
       return new Function(args, "with($context) { return " + code + " }");
-    } catch (error) {
-      e = error;
+    } catch (_error) {
+      e = _error;
       throw "Twine error: Unable to create function on " + node.nodeName + " node with attributes " + (stringifyNodeAttributes(node));
     }
   }
@@ -466,7 +466,7 @@ Twine.bindingTypes = {
 
 setupAttributeBinding = function(attributeName, bindingName) {
   var booleanAttribute;
-  booleanAttribute = attributeName === 'checked' || attributeName === 'disabled' || attributeName === 'readOnly';
+  booleanAttribute = attributeName === 'checked' || attributeName === 'indeterminate' || attributeName === 'disabled' || attributeName === 'readOnly';
   return Twine.bindingTypes["bind-" + bindingName] = function(node, context, definition) {
     var fn, lastValue;
     fn = wrapFunctionString(definition, '$context,$root', node);
@@ -490,7 +490,7 @@ setupAttributeBinding = function(attributeName, bindingName) {
   };
 };
 
-ref = ['placeholder', 'checked', 'disabled', 'href', 'title', 'readOnly', 'src'];
+ref = ['placeholder', 'checked', 'indeterminate', 'disabled', 'href', 'title', 'readOnly', 'src'];
 for (j = 0, len = ref.length; j < len; j++) {
   attribute = ref[j];
   setupAttributeBinding(attribute, attribute);

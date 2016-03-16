@@ -209,6 +209,24 @@ suite "Twine", ->
       assert.equal node.getAttribute('g'), '0'
       assert.equal node.getAttribute('h'), 'false'
 
+  suite "data-bind-indeterminate attribute", ->
+    test "should set the indeterminate attribute", ->
+      testView = "<input type=\"checkbox\" data-bind-indeterminate=\"key\">"
+      node = setupView(testView, context = key: true)
+      assert.isTrue node.indeterminate
+
+      context.key = false
+      Twine.refreshImmediately()
+      assert.isFalse node.indeterminate
+
+      context.key = null
+      Twine.refreshImmediately()
+      assert.isFalse node.indeterminate
+
+      context.key = undefined
+      Twine.refreshImmediately()
+      assert.isFalse node.indeterminate
+
   suite "data-bind-checked attribute", ->
     test "should set the checked attribute", ->
       testView = "<input type=\"checkbox\" data-bind-checked=\"key\">"
