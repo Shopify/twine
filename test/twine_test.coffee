@@ -250,11 +250,11 @@ suite "Twine", ->
       Twine.refreshImmediately()
       assert.isFalse node.readOnly
 
-  suite "data-bind-unsafe-html attribute", ->
-    test "should set the innerHTML of the node", ->
-      testView = "<div data-bind-unsafe-html=\"key\"></div>"
-      node = setupView(testView, key: "&amp;")
-      assert.equal node.innerHTML, "&amp;"
+  suite "data-bind-inner-text attribute", ->
+    test "should set the innerText of the node", ->
+      testView = "<div data-bind-inner-text=\"key\"></div>"
+      node = setupView(testView, key: "some text")
+      assert.equal node.innerHTML, "some text"
 
   suite "data-bind-src attribute", ->
     test "should set the src of the node", ->
@@ -875,6 +875,12 @@ suite "TwineLegacy", ->
       testView = "<div bind-unsafe-html=\"key\"></div>"
       node = setupView(testView, key: "&amp;")
       assert.equal node.innerHTML, "&amp;"
+
+  suite "bind-inner-text attribute", ->
+    test "should set the innerText of the node", ->
+      testView = "<div bind-inner-text=\"key\"></div>"
+      node = setupView(testView, key: "some text")
+      assert.equal node.innerHTML, "some text"
 
   suite "bind-src attribute", ->
     test "should set the src of the node", ->

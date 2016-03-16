@@ -312,6 +312,7 @@ for attribute in ['placeholder', 'checked', 'disabled', 'href', 'title', 'readOn
   setupAttributeBinding(attribute, attribute)
 
 setupAttributeBinding('innerHTML', 'unsafe-html')
+setupAttributeBinding('innerText', 'inner-text')
 
 preventDefaultForEvent = (event) ->
   (event.type == 'submit' || event.currentTarget.nodeName.toLowerCase() == 'a') &&

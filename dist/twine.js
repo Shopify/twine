@@ -498,6 +498,8 @@ for (j = 0, len = ref.length; j < len; j++) {
 
 setupAttributeBinding('innerHTML', 'unsafe-html');
 
+setupAttributeBinding('innerText', 'inner-text');
+
 preventDefaultForEvent = function(event) {
   return (event.type === 'submit' || event.currentTarget.nodeName.toLowerCase() === 'a') && Twine.getAttribute(event.currentTarget, 'allow-default') !== '1';
 };
