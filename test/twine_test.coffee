@@ -931,6 +931,14 @@ suite "TwineLegacy", ->
       $(node).click()
       assert.equal context.fn.callCount, 0
 
+  suite "bind-event-paste attribute", ->
+    test "should run the handler on paste", ->
+      testView = "<div bind-event-paste=\"fn()\"></div>"
+      node = setupView(testView, context = fn: @spy())
+
+      $(node).trigger 'paste'
+      assert.isTrue context.fn.calledOnce
+
   suite "bind-event-click attribute", ->
     test "should run the handler on click", ->
       testView = "<div bind-event-click=\"fn()\"></div>"
