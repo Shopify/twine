@@ -1,5 +1,4 @@
 require "rails"
-require "active_support"
 
 require "twine-rails/version"
 
