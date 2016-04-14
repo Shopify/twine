@@ -301,7 +301,7 @@ stringifyNodeAttributes = function(node) {
 };
 
 wrapFunctionString = function(code, args, node) {
-  var e, keypath;
+  var e, error, keypath;
   if (isKeypath(code) && (keypath = keypathForKey(code))) {
     if (keypath[0] === '$root') {
       return function($context, $root) {
@@ -315,8 +315,8 @@ wrapFunctionString = function(code, args, node) {
   } else {
     try {
       return new Function(args, "with($context) { return " + code + " }");
-    } catch (_error) {
-      e = _error;
+    } catch (error) {
+      e = error;
       throw "Twine error: Unable to create function on " + node.nodeName + " node with attributes " + (stringifyNodeAttributes(node));
     }
   }
@@ -526,7 +526,7 @@ setupEventBinding = function(eventName) {
   };
 };
 
-ref1 = ['click', 'dblclick', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input', 'error', 'done', 'success', 'fail', 'blur', 'focus', 'load'];
+ref1 = ['click', 'dblclick', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input', 'error', 'done', 'success', 'fail', 'blur', 'focus', 'load', 'paste'];
 for (k = 0, len1 = ref1.length; k < len1; k++) {
   eventName = ref1[k];
   setupEventBinding(eventName);
