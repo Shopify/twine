@@ -333,5 +333,7 @@ setupEventBinding = (eventName) ->
     return teardown: ->
       $(node).off eventName, onEventHandler
 
-for eventName in ['click', 'dblclick', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input', 'error', 'done', 'success', 'fail', 'blur', 'focus', 'load', 'paste']
+for eventName in ['click', 'dblclick', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'mousedown', 'mouseup',
+  'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input',
+  'error', 'done', 'success', 'fail', 'blur', 'focus', 'load', 'paste']
   setupEventBinding(eventName)
