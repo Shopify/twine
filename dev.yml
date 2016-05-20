@@ -1,0 +1,18 @@
+name: twine
+
+up:
+  - node:
+      version: v5.7.0
+      packages:
+        - .
+  - ruby:
+      package: shopify/shopify/shopify-ruby
+      version: 2.3.1
+  - bundler
+
+
+commands:
+  test:
+    syntax: ""
+    desc: 'Run Twine tests'
+    run: node_modules/.bin/testem ci
