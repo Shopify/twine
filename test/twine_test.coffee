@@ -374,6 +374,20 @@ suite "Twine", ->
         setupView(testView, context = {})
       , 'Twine error: Unable to create function on DIV node with attributes data-define=\'{key: \'value\', key2: \'value2\''
 
+    test "should push the given keys to an array when using the array syntax", ->
+      testView = "<div data-define=\"{'key[]': 'value', key2: 'value2'}\"></div>"
+      setupView(testView, context = {})
+
+      assert.deepEqual context.key, ["value"]
+      assert.equal context.key2, "value2"
+
+    test "should throw an error if trying to use the array syntax on a value that isn't an array", ->
+      testView = "<div data-define=\"{'key[]': 'value'}\"></div>"
+
+      assert.throw ->
+        setupView(testView, context = {key: "bad"})
+      , "Twine error: expected 'key' to be an array"
+
   suite "data-eval attribute", ->
     test "should call the given code", ->
       testView = "<span data-eval='myArray.push(\"stuff\")'></span>"

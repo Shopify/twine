@@ -454,7 +454,18 @@ Twine.bindingTypes = {
     object = fn.call(node, context, rootContext);
     for (key in object) {
       value = object[key];
-      context[key] = value;
+      if (key.length > 1 && key.lastIndexOf("[]") === key.length - 2) {
+        key = key.slice(0, -2);
+        if (context[key] == null) {
+          context[key] = [];
+        }
+        if (!(context[key] instanceof Array)) {
+          throw "Twine error: expected '" + key + "' to be an array";
+        }
+        context[key].push(value);
+      } else {
+        context[key] = value;
+      }
     }
   },
   "eval": function(node, context, definition) {

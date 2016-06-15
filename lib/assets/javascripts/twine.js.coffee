@@ -286,7 +286,15 @@ Twine.bindingTypes =
   define: (node, context, definition) ->
     fn = wrapFunctionString(definition, '$context,$root', node)
     object = fn.call(node, context, rootContext)
-    context[key] = value for key, value of object
+    for key, value of object
+      if key.length > 1 && key.lastIndexOf("[]") == key.length - 2
+        key = key[0...-2]
+        context[key] ?= []
+        throw "Twine error: expected '#{key}' to be an array" unless context[key] instanceof Array
+
+        context[key].push(value)
+      else
+        context[key] = value
     return
 
   eval: (node, context, definition) ->
