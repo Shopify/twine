@@ -388,6 +388,22 @@ suite "Twine", ->
         setupView(testView, context = {key: "bad"})
       , "Twine error: expected 'key' to be an array"
 
+    test "with the array syntax should be available to the context with the array syntax", ->
+      testView = """
+        <div>
+          <div data-define=\"{'key[]': {value: "val"}}\" context="key[]">
+            <span bind="value"></span>
+          </div>
+          <div data-define=\"{'key[]': {value: "other val"}}\" context="key[]">
+            <span bind="value"></span>
+          </div>
+        </div>
+      """
+
+      node = setupView(testView, context = {})
+      assert.equal "val", node.children[0].children[0].textContent
+      assert.equal "other val", node.children[1].children[0].textContent
+
   suite "data-eval attribute", ->
     test "should call the given code", ->
       testView = "<span data-eval='myArray.push(\"stuff\")'></span>"

@@ -58,7 +58,14 @@ bind = (context, node, forceSaveContext) ->
     if keypath[0] == '$root'
       context = rootContext
       keypath = keypath.slice(1)
-    context = getValue(context, keypath) || setValue(context, keypath, {})
+
+    context = if keypath.length == 1 && isArrayKey(keypath[0])
+      key = keypath[0][0...-2]
+      array = context[key]
+      throw "Twine error: unable to access array with key 'key'" unless array instanceof Array
+      array[array.length - 1]
+    else
+      getValue(context, keypath) || setValue(context, keypath, {})
 
   if element || newContextKey || forceSaveContext
     (element ?= {}).childContext = context
@@ -151,6 +158,9 @@ valueAttributeForNode = (node) ->
     if node.getAttribute('type') in ['checkbox', 'radio'] then 'checked' else 'value'
   else
     'textContent'
+
+isArrayKey = (key) ->
+  key.length > 1 && key.lastIndexOf("[]") == key.length - 2
 
 keypathForKey = (key) ->
   keypath = []
@@ -287,7 +297,7 @@ Twine.bindingTypes =
     fn = wrapFunctionString(definition, '$context,$root', node)
     object = fn.call(node, context, rootContext)
     for key, value of object
-      if key.length > 1 && key.lastIndexOf("[]") == key.length - 2
+      if isArrayKey(key)
         key = key[0...-2]
         context[key] ?= []
         throw "Twine error: expected '#{key}' to be an array" unless context[key] instanceof Array
