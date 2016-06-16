@@ -12,6 +12,9 @@
   # Map of node binding ids to objects that describe a node's bindings.
   elements = {}
 
+  # Registered components to look up
+  registry = {}
+
   # The number of nodes bound since the last call to Twine.reset().
   # Used to determine the next binding id.
   nodeCount = 0
@@ -102,6 +105,12 @@
     refreshQueued = false
     refreshElement(element) for key, element of elements
     return
+
+  Twine.register = (name, component) ->
+    if registry[name]
+      throw new Error("Twine error: '#{name}' is already registered with Twine")
+    else
+      registry[name] = component
 
   # Force the binding system to recognize programmatic changes to a node's value.
   Twine.change = (node, bubble = false) ->
@@ -201,10 +210,14 @@
       else
         ($context, $root) -> getValue($context, keypath)
     else
+      code = "return #{code}"
+      code = "with($registry) { #{code} }" if requiresRegistry(args)
       try
-        new Function(args, "with($context) { return #{code} }")
+        new Function(args, "with($context) { #{code} }")
       catch e
         throw "Twine error: Unable to create function on #{node.nodeName} node with attributes #{stringifyNodeAttributes(node)}"
+
+  requiresRegistry = (args) -> /\$registry/.test(args)
 
   isKeypath = (value) ->
     value not in ['true', 'false', 'null', 'undefined'] and keypathRegex.test(value)
@@ -292,14 +305,14 @@
         lastValue = newValue
 
     define: (node, context, definition) ->
-      fn = wrapFunctionString(definition, '$context,$root', node)
-      object = fn.call(node, context, rootContext)
+      fn = wrapFunctionString(definition, '$context,$root,$registry', node)
+      object = fn.call(node, context, rootContext, registry)
       context[key] = value for key, value of object
       return
 
     eval: (node, context, definition) ->
-      fn = wrapFunctionString(definition, '$context,$root', node)
-      fn.call(node, context, rootContext)
+      fn = wrapFunctionString(definition, '$context,$root,$registry', node)
+      fn.call(node, context, rootContext, registry)
       return
 
   setupAttributeBinding = (attributeName, bindingName) ->

@@ -10,10 +10,11 @@
       return root.Twine = factory();
     }
   })(this, function() {
-    var Twine, attribute, bind, currentBindingCallbacks, elements, eventName, fireCustomChangeEvent, getContext, getValue, isKeypath, j, k, keypathForKey, keypathRegex, len, len1, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, rootContext, rootNode, setValue, setupAttributeBinding, setupEventBinding, stringifyNodeAttributes, valueAttributeForNode, wrapFunctionString;
+    var Twine, attribute, bind, currentBindingCallbacks, elements, eventName, fireCustomChangeEvent, getContext, getValue, isKeypath, j, k, keypathForKey, keypathRegex, len, len1, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupAttributeBinding, setupEventBinding, stringifyNodeAttributes, valueAttributeForNode, wrapFunctionString;
     Twine = {};
     Twine.shouldDiscardEvent = {};
     elements = {};
+    registry = {};
     nodeCount = 0;
     rootContext = null;
     keypathRegex = /^[a-z]\w*(\.[a-z]\w*|\[\d+\])*$/i;
@@ -134,6 +135,13 @@
       for (key in elements) {
         element = elements[key];
         refreshElement(element);
+      }
+    };
+    Twine.register = function(name, component) {
+      if (registry[name]) {
+        throw new Error("Twine error: '" + name + "' is already registered with Twine");
+      } else {
+        return registry[name] = component;
       }
     };
     Twine.change = function(node, bubble) {
@@ -294,13 +302,20 @@
           };
         }
       } else {
+        code = "return " + code;
+        if (requiresRegistry(args)) {
+          code = "with($registry) { " + code + " }";
+        }
         try {
-          return new Function(args, "with($context) { return " + code + " }");
+          return new Function(args, "with($context) { " + code + " }");
         } catch (error) {
           e = error;
           throw "Twine error: Unable to create function on " + node.nodeName + " node with attributes " + (stringifyNodeAttributes(node));
         }
       }
+    };
+    requiresRegistry = function(args) {
+      return /\$registry/.test(args);
     };
     isKeypath = function(value) {
       return (value !== 'true' && value !== 'false' && value !== 'null' && value !== 'undefined') && keypathRegex.test(value);
@@ -428,8 +443,8 @@
       },
       define: function(node, context, definition) {
         var fn, key, object, value;
-        fn = wrapFunctionString(definition, '$context,$root', node);
-        object = fn.call(node, context, rootContext);
+        fn = wrapFunctionString(definition, '$context,$root,$registry', node);
+        object = fn.call(node, context, rootContext, registry);
         for (key in object) {
           value = object[key];
           context[key] = value;
@@ -437,8 +452,8 @@
       },
       "eval": function(node, context, definition) {
         var fn;
-        fn = wrapFunctionString(definition, '$context,$root', node);
-        fn.call(node, context, rootContext);
+        fn = wrapFunctionString(definition, '$context,$root,$registry', node);
+        fn.call(node, context, rootContext, registry);
       }
     };
     setupAttributeBinding = function(attributeName, bindingName) {
