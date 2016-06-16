@@ -388,6 +388,26 @@ suite "Twine", ->
         setupView(testView, context = {key: "bad"})
       , "Twine error: expected 'key' to be an array"
 
+    test "contexts and bindings inside the array define should correctly look up their values in the array based on their position", ->
+      testView = """
+        <div>
+          <div data-define=\"{'key[]': {val: 'value'} }\" context="key[]">
+            <span data-bind="val">
+          </div>
+          <div data-define=\"{'key[]': {val: 'other value'}}\">
+            <span data-bind="key[].val">
+          </div>
+          <div data-define=\"{'key[]': {val: 'third value'}}\">
+            <span data-bind="key[].val">
+          </div>
+        </div>
+      """
+
+      node = setupView(testView, context = {})
+      assert.equal "value", node.children[0].children[0].textContent
+      assert.equal "other value", node.children[1].children[0].textContent
+      assert.equal "third value", node.children[2].children[0].textContent
+
   suite "data-eval attribute", ->
     test "should call the given code", ->
       testView = "<span data-eval='myArray.push(\"stuff\")'></span>"

@@ -3,6 +3,7 @@ Twine.shouldDiscardEvent = {}
 
 # Map of node binding ids to objects that describe a node's bindings.
 elements = {}
+arrayIndexes = {}
 
 # The number of nodes bound since the last call to Twine.reset().
 # Used to determine the next binding id.
@@ -11,7 +12,7 @@ nodeCount = 0
 # Storage for all bindable data, provided by the caller of Twine.reset().
 rootContext = null
 
-keypathRegex = /^[a-z]\w*(\.[a-z]\w*|\[\d+\])*$/i # Tests if a string is a pure keypath.
+keypathRegex = /^[a-z]\w*(\.[a-z]\w*|\[\d*\])*$/i # Tests if a string is a pure keypath.
 refreshQueued = false
 rootNode = null
 
@@ -27,6 +28,7 @@ Twine.reset = (newContext, node = document.documentElement) ->
       obj.teardown() for obj in bindings when obj.teardown
 
   elements = {}
+  arrayIndexes = {}
 
   rootContext = newContext
   rootNode = node
@@ -58,10 +60,11 @@ bind = (context, node, forceSaveContext) ->
     if keypath[0] == '$root'
       context = rootContext
       keypath = keypath.slice(1)
-    context = getValue(context, keypath) || setValue(context, keypath, {})
+    context = getValue(node, context, keypath) || setValue(node, context, keypath, {})
 
   if element || newContextKey || forceSaveContext
-    (element ?= {}).childContext = context
+    element ?= {}
+    element.childContext = context
     elements[node.bindingId ?= ++nodeCount] = element
 
   callbacks = currentBindingCallbacks
@@ -107,6 +110,7 @@ Twine.unbind = (node) ->
     if bindings = elements[id]?.bindings
       obj.teardown() for obj in bindings when obj.teardown
     delete elements[id]
+    delete arrayIndexes[id]
     delete node.bindingId
 
 
@@ -129,6 +133,20 @@ getContext = (node, child) ->
     if (id = node.bindingId) && (context = elements[id]?.childContext)
       return context
     node = node.parentNode if child
+
+getArrayIndex = (node, arrayKey) ->
+  firstContext = null
+  while node
+    id = node.bindingId
+    if id
+      index = arrayIndexes[id]?[arrayKey]
+      return index if index?
+      context = elements[id]?.childContext
+      firstContext ||= context
+      break if context && context != firstContext
+    node = node.parentNode
+
+  throw "Twine error: could not find an array key for '#{arrayKey}'"
 
 # Returns the fully qualified key for a node's context
 Twine.contextKey = (node, lastContext) ->
@@ -156,25 +174,46 @@ keypathForKey = (key) ->
   keypath = []
   for key in key.split('.')
     if (start = key.indexOf('[')) != -1
-      keypath.push(key.substr(0, start))
-      key = key.substr(start)
+      substring = key.substr(0, start)
+      if key == "#{substring}[]"
+        keypath.push(key)
+      else
+        keypath.push(substring)
+        key = key.substr(start)
 
-      while (end = key.indexOf(']')) != -1
-        keypath.push(parseInt(key.substr(1, end), 10))
-        key = key.substr(end + 1)
+        while (end = key.indexOf(']')) != -1
+          keypath.push(parseInt(key.substr(1, end), 10))
+          key = key.substr(end + 1)
     else
       keypath.push(key)
   keypath
 
-getValue = (object, keypath) ->
-  object = object[key] for key in keypath when object?
+getValue = (node, object, keypath) ->
+  for key in keypath when object?
+    if isKeyForArray(key)
+      key = key[0...-2]
+      index = getArrayIndex(node, key)
+      object = object[key][index]
+    else
+      object = object[key]
   object
 
-setValue = (object, keypath, value) ->
+setValue = (node, object, keypath, value) ->
   [keypath..., lastKey] = keypath
   for key in keypath
-    object = object[key] ?= {}
-  object[lastKey] = value
+    if isKeyForArray(key)
+      key = key[0...-2]
+      index = getArrayIndex(node, key)
+      object = object[key][index]
+    else
+      object = object[key] ?= {}
+
+  if isKeyForArray(lastKey)
+    lastKey = lastKey[0...-2]
+    index = getArrayIndex(node, lastKey)
+    object[lastKey][index] = value
+  else
+    object[lastKey] = value
 
 stringifyNodeAttributes = (node) ->
   nAttributes = node.attributes.length
@@ -189,9 +228,9 @@ stringifyNodeAttributes = (node) ->
 wrapFunctionString = (code, args, node) ->
   if isKeypath(code) && keypath = keypathForKey(code)
     if keypath[0] == '$root'
-      ($context, $root) -> getValue($root, keypath)
+      ($context, $root) -> getValue(node, $root, keypath)
     else
-      ($context, $root) -> getValue($context, keypath)
+      ($context, $root) -> getValue(node, $context, keypath)
   else
     try
       new Function(args, "with($context) { return #{code} }")
@@ -200,6 +239,10 @@ wrapFunctionString = (code, args, node) ->
 
 isKeypath = (value) ->
   value not in ['true', 'false', 'null', 'undefined'] and keypathRegex.test(value)
+
+isKeyForArray = (key) ->
+  return false unless typeof(key) == 'string'
+  key.length > 1 && key.lastIndexOf("[]") == key.length - 2
 
 fireCustomChangeEvent = (node) ->
   event = document.createEvent('CustomEvent')
@@ -232,9 +275,9 @@ Twine.bindingTypes =
     refreshContext = ->
       if checkedValueType
         return unless node.checked
-        setValue(context, keypath, node.value)
+        setValue(node, context, keypath, node.value)
       else
-        setValue(context, keypath, node[valueAttribute])
+        setValue(node, context, keypath, node[valueAttribute])
 
     keypath = keypathForKey(definition)
     twoWayBinding = valueAttribute != 'textContent' && node.type != 'hidden'
@@ -243,12 +286,12 @@ Twine.bindingTypes =
       context = rootContext
       keypath = keypath.slice(1)
 
-    if value? && (twoWayBinding || value != '') && !(oldValue = getValue(context, keypath))?
+    if value? && (twoWayBinding || value != '') && !(oldValue = getValue(node, context, keypath))?
       refreshContext()
 
     if twoWayBinding
       changeHandler = ->
-        return if getValue(context, keypath) == this[valueAttribute]
+        return if getValue(node, context, keypath) == this[valueAttribute]
         refreshContext()
         Twine.refreshImmediately()
       $(node).on 'input keyup change', changeHandler
@@ -287,11 +330,14 @@ Twine.bindingTypes =
     fn = wrapFunctionString(definition, '$context,$root', node)
     object = fn.call(node, context, rootContext)
     for key, value of object
-      if key.length > 1 && key.lastIndexOf("[]") == key.length - 2
+      if isKeyForArray(key)
         key = key[0...-2]
         context[key] ?= []
         throw "Twine error: expected '#{key}' to be an array" unless context[key] instanceof Array
 
+        node.bindingId ?= ++nodeCount
+        arrayIndexes[nodeCount] ?= {}
+        arrayIndexes[nodeCount][key] = context[key].length
         context[key].push(value)
       else
         context[key] = value
