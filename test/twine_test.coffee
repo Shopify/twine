@@ -604,7 +604,7 @@ suite "Twine", ->
       assert.equal context.fn.callCount, 0
 
   suite "register", ->
-    test "should register and resolve a constructor", ->
+    test "should register and resolve from registry", ->
       class TestClass # _not_ global
       Twine.register('TestClass', TestClass)
       testView = "<div data-define='{testClass: new TestClass()}'></div>"
@@ -625,6 +625,13 @@ suite "Twine", ->
       assert.throw ->
         Twine.register('component', {})
       , "Twine error: 'component' is already registered with Twine"
+
+    test "should not evaluate from registry outside of 'define' or 'eval'", ->
+      Twine.register('outsideOfContext', {message: 'hello world'})
+      testView = "<input type='text' data-bind='outsideOfContext.message'></div>"
+      setupView(testView, context = {})
+
+      assert.equal context.outsideOfContext.message, ''
 
   test "context should return the node's context", ->
     testView = '<div data-context="inner"><div data-context="inner"></div></div>'

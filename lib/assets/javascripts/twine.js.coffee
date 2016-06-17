@@ -5,7 +5,7 @@ Twine.shouldDiscardEvent = {}
 elements = {}
 
 # Registered modules to look up
-modules = {}
+registry = {}
 
 # The number of nodes bound since the last call to Twine.reset().
 # Used to determine the next binding id.
@@ -98,11 +98,11 @@ Twine.refreshImmediately = ->
   refreshElement(element) for key, element of elements
   return
 
-Twine.register = (name, constructor) ->
-  if modules[name]
+Twine.register = (name, component) ->
+  if registry[name]
     throw new Error("Twine error: '#{name}' is already registered with Twine")
   else
-    modules[name] = constructor
+    registry[name] = component
 
 # Force the binding system to recognize programmatic changes to a node's value.
 Twine.change = (node, bubble = false) ->
@@ -202,10 +202,14 @@ wrapFunctionString = (code, args, node) ->
     else
       ($context, $root) -> getValue($context, keypath)
   else
+    code = "return #{code}"
+    code = "with($registry) { #{code} }" if requiresRegistry(args)
     try
-      new Function(args, "with($context) { with($modules) { return #{code} } }")
+      new Function(args, "with($context) { #{code} }")
     catch e
       throw "Twine error: Unable to create function on #{node.nodeName} node with attributes #{stringifyNodeAttributes(node)}"
+
+requiresRegistry = (args) -> /\$registry/.test(args)
 
 isKeypath = (value) ->
   value not in ['true', 'false', 'null', 'undefined'] and keypathRegex.test(value)
@@ -224,10 +228,10 @@ Twine.bindingTypes =
 
     # Radio buttons only set the value to the node value if checked.
     checkedValueType = node.getAttribute('type') == 'radio'
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node)
+    fn = wrapFunctionString(definition, '$context,$root', node)
 
     refresh = ->
-      newValue = fn.call(node, context, rootContext, modules)
+      newValue = fn.call(node, context, rootContext)
       return if newValue == lastValue # return if we can and avoid a DOM operation
 
       lastValue = newValue
@@ -267,47 +271,47 @@ Twine.bindingTypes =
     {refresh, teardown}
 
   'bind-show': (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node)
+    fn = wrapFunctionString(definition, '$context,$root', node)
     lastValue = undefined
     return refresh: ->
-      newValue = !fn.call(node, context, rootContext, modules)
+      newValue = !fn.call(node, context, rootContext)
       return if newValue == lastValue
       $(node).toggleClass('hide', lastValue = newValue)
 
   'bind-class': (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node)
+    fn = wrapFunctionString(definition, '$context,$root', node)
     lastValue = {}
     return refresh: ->
-      newValue = fn.call(node, context, rootContext, modules)
+      newValue = fn.call(node, context, rootContext)
       for key, value of newValue when !lastValue[key] != !value
         $(node).toggleClass(key, !!value)
       lastValue = newValue
 
   'bind-attribute': (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node)
+    fn = wrapFunctionString(definition, '$context,$root', node)
     lastValue = {}
     return refresh: ->
-      newValue = fn.call(node, context, rootContext, modules)
+      newValue = fn.call(node, context, rootContext)
       for key, value of newValue when lastValue[key] != value
         $(node).attr(key, value || null)
       lastValue = newValue
 
   define: (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node)
-    object = fn.call(node, context, rootContext, modules)
+    fn = wrapFunctionString(definition, '$context,$root,$registry', node)
+    object = fn.call(node, context, rootContext, registry)
     context[key] = value for key, value of object
     return
 
   eval: (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node)
-    fn.call(node, context, rootContext, modules)
+    fn = wrapFunctionString(definition, '$context,$root,$registry', node)
+    fn.call(node, context, rootContext, registry)
     return
 
 setupAttributeBinding = (attributeName, bindingName) ->
   booleanAttribute = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly']
 
   Twine.bindingTypes["bind-#{bindingName}"] = (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node)
+    fn = wrapFunctionString(definition, '$context,$root', node)
     lastValue = undefined
     return refresh: ->
       newValue = fn.call(node, context, rootContext)
@@ -335,7 +339,7 @@ setupEventBinding = (eventName) ->
 
       return if discardEvent
 
-      wrapFunctionString(definition, '$context,$root,$modules,event,data', node).call(node, context, rootContext, modules, event, data)
+      wrapFunctionString(definition, '$context,$root,event,data', node).call(node, context, rootContext, event, data)
       Twine.refreshImmediately()
     $(node).on eventName, onEventHandler
 

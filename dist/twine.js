@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var attribute, bind, currentBindingCallbacks, elements, eventName, fireCustomChangeEvent, getContext, getValue, isKeypath, j, k, keypathForKey, keypathRegex, len, len1, modules, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, rootContext, rootNode, setValue, setupAttributeBinding, setupEventBinding, stringifyNodeAttributes, valueAttributeForNode, wrapFunctionString,
+var attribute, bind, currentBindingCallbacks, elements, eventName, fireCustomChangeEvent, getContext, getValue, isKeypath, j, k, keypathForKey, keypathRegex, len, len1, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupAttributeBinding, setupEventBinding, stringifyNodeAttributes, valueAttributeForNode, wrapFunctionString,
   slice = [].slice;
 
 window.Twine = {};
@@ -8,7 +8,7 @@ Twine.shouldDiscardEvent = {};
 
 elements = {};
 
-modules = {};
+registry = {};
 
 nodeCount = 0;
 
@@ -146,11 +146,11 @@ Twine.refreshImmediately = function() {
   }
 };
 
-Twine.register = function(name, constructor) {
-  if (modules[name]) {
+Twine.register = function(name, component) {
+  if (registry[name]) {
     throw new Error("Twine error: '" + name + "' is already registered with Twine");
   } else {
-    return modules[name] = constructor;
+    return registry[name] = component;
   }
 };
 
@@ -323,13 +323,21 @@ wrapFunctionString = function(code, args, node) {
       };
     }
   } else {
+    code = "return " + code;
+    if (requiresRegistry(args)) {
+      code = "with($registry) { " + code + " }";
+    }
     try {
-      return new Function(args, "with($context) { with($modules) { return " + code + " } }");
+      return new Function(args, "with($context) { " + code + " }");
     } catch (error) {
       e = error;
       throw "Twine error: Unable to create function on " + node.nodeName + " node with attributes " + (stringifyNodeAttributes(node));
     }
   }
+};
+
+requiresRegistry = function(args) {
+  return /\$registry/.test(args);
 };
 
 isKeypath = function(value) {
@@ -351,10 +359,10 @@ Twine.bindingTypes = {
     lastValue = void 0;
     teardown = void 0;
     checkedValueType = node.getAttribute('type') === 'radio';
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node);
+    fn = wrapFunctionString(definition, '$context,$root', node);
     refresh = function() {
       var newValue;
-      newValue = fn.call(node, context, rootContext, modules);
+      newValue = fn.call(node, context, rootContext);
       if (newValue === lastValue) {
         return;
       }
@@ -409,12 +417,12 @@ Twine.bindingTypes = {
   },
   'bind-show': function(node, context, definition) {
     var fn, lastValue;
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node);
+    fn = wrapFunctionString(definition, '$context,$root', node);
     lastValue = void 0;
     return {
       refresh: function() {
         var newValue;
-        newValue = !fn.call(node, context, rootContext, modules);
+        newValue = !fn.call(node, context, rootContext);
         if (newValue === lastValue) {
           return;
         }
@@ -424,12 +432,12 @@ Twine.bindingTypes = {
   },
   'bind-class': function(node, context, definition) {
     var fn, lastValue;
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node);
+    fn = wrapFunctionString(definition, '$context,$root', node);
     lastValue = {};
     return {
       refresh: function() {
         var key, newValue, value;
-        newValue = fn.call(node, context, rootContext, modules);
+        newValue = fn.call(node, context, rootContext);
         for (key in newValue) {
           value = newValue[key];
           if (!lastValue[key] !== !value) {
@@ -442,12 +450,12 @@ Twine.bindingTypes = {
   },
   'bind-attribute': function(node, context, definition) {
     var fn, lastValue;
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node);
+    fn = wrapFunctionString(definition, '$context,$root', node);
     lastValue = {};
     return {
       refresh: function() {
         var key, newValue, value;
-        newValue = fn.call(node, context, rootContext, modules);
+        newValue = fn.call(node, context, rootContext);
         for (key in newValue) {
           value = newValue[key];
           if (lastValue[key] !== value) {
@@ -460,8 +468,8 @@ Twine.bindingTypes = {
   },
   define: function(node, context, definition) {
     var fn, key, object, value;
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node);
-    object = fn.call(node, context, rootContext, modules);
+    fn = wrapFunctionString(definition, '$context,$root,$registry', node);
+    object = fn.call(node, context, rootContext, registry);
     for (key in object) {
       value = object[key];
       context[key] = value;
@@ -469,8 +477,8 @@ Twine.bindingTypes = {
   },
   "eval": function(node, context, definition) {
     var fn;
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node);
-    fn.call(node, context, rootContext, modules);
+    fn = wrapFunctionString(definition, '$context,$root,$registry', node);
+    fn.call(node, context, rootContext, registry);
   }
 };
 
@@ -479,7 +487,7 @@ setupAttributeBinding = function(attributeName, bindingName) {
   booleanAttribute = attributeName === 'checked' || attributeName === 'indeterminate' || attributeName === 'disabled' || attributeName === 'readOnly';
   return Twine.bindingTypes["bind-" + bindingName] = function(node, context, definition) {
     var fn, lastValue;
-    fn = wrapFunctionString(definition, '$context,$root,$modules', node);
+    fn = wrapFunctionString(definition, '$context,$root', node);
     lastValue = void 0;
     return {
       refresh: function() {
@@ -524,7 +532,7 @@ setupEventBinding = function(eventName) {
       if (discardEvent) {
         return;
       }
-      wrapFunctionString(definition, '$context,$root,$modules,event,data', node).call(node, context, rootContext, modules, event, data);
+      wrapFunctionString(definition, '$context,$root,event,data', node).call(node, context, rootContext, event, data);
       return Twine.refreshImmediately();
     };
     $(node).on(eventName, onEventHandler);
