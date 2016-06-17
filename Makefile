@@ -1,4 +1,3 @@
-APP_FILES=$(shell find lib/assets/**/*.coffee)
 TEST_FILES=$(shell find test/*.coffee)
 
 # For continuous rebuild of packages: `watch make .all`
@@ -8,8 +7,8 @@ TEST_FILES=$(shell find test/*.coffee)
 # for now, exactly the same as .all
 .pretestem: .all
 
-.app: $(APP_FILES)
-	node_modules/.bin/browserify $(APP_FILES) -o dist/twine.js -t coffeeify
+.app:
+	node_modules/.bin/coffee --no-header -o dist/ -c lib/assets/javascripts/twine.coffee
 
 .test: $(TEST_FILES)
 	node_modules/.bin/browserify $(TEST_FILES) -o test/test_bundle.js -t coffeeify

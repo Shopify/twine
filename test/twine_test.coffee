@@ -1,4 +1,4 @@
-require('pbind')
+Twine = require('../dist/twine')
 
 suite "Twine", ->
   setupView = (html, context) ->
