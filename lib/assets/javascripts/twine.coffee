@@ -323,7 +323,7 @@
 
   preventDefaultForEvent = (event) ->
     (event.type == 'submit' || event.currentTarget.nodeName.toLowerCase() == 'a') &&
-    Twine.getAttribute(event.currentTarget, 'allow-default') != '1'
+    Twine.getAttribute(event.currentTarget, 'allow-default') in ['false', false, 0, undefined, null]
 
   setupEventBinding = (eventName) ->
     Twine.bindingTypes["bind-event-#{eventName}"] = (node, context, definition) ->

@@ -1040,8 +1040,32 @@ suite "TwineLegacy", ->
       $(node).trigger(event)
       assert.isTrue event.preventDefault.calledOnce
 
-    test "should allow default action for an anchor tag when set to 1", ->
+    test "should allow default action for an anchor tag when set to true", ->
+      testView = "<a bind-event-click=\"fn()\" allow-default=\"true\"></a>"
+      event = {type: 'click', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isFalse event.preventDefault.called
+
+    test "should allow default action for an anchor tag when set to anything but false", ->
       testView = "<a bind-event-click=\"fn()\" allow-default=\"1\"></a>"
+      event = {type: 'click', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isFalse event.preventDefault.called
+
+    test "should prevent default action for anchor tag when set to false", ->
+      testView = "<a bind-event-click=\"fn()\" allow-default=\"false\"></a>"
+      event = {type: 'click', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isTrue event.preventDefault.called
+
+    test "should allow default action when allow-default is present", ->
+      testView = "<a bind-event-click=\"fn()\" allow-default></a>"
       event = {type: 'click', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
@@ -1056,13 +1080,29 @@ suite "TwineLegacy", ->
       $(node).trigger(event)
       assert.isTrue event.preventDefault.calledOnce
 
-    test "should allow default action for a submit event when set to 1", ->
+    test "should allow default action for a submit event when set to true", ->
+      testView = "<form action=\"#\" bind-event-submit=\"fn()\" allow-default=\"true\"></form>"
+      event = {type: 'submit', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isFalse event.preventDefault.called
+
+    test "should allow default action for a submit event when set to anything but false", ->
       testView = "<form action=\"#\" bind-event-submit=\"fn()\" allow-default=\"1\"></form>"
       event = {type: 'submit', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
       $(node).trigger(event)
       assert.isFalse event.preventDefault.called
+
+    test "should prevent default action for a submit event when set to false", ->
+      testView = "<form action=\"#\" bind-event-submit=\"fn()\" allow-default=\"false\"></form>"
+      event = {type: 'submit', preventDefault: @spy()}
+      node = setupView(testView, fn: ->)
+
+      $(node).trigger(event)
+      assert.isTrue event.preventDefault.calledOnce
 
     test "should do nothing unless an anchor tag or submit event", ->
       testView = "<button bind-event-click=\"fn()\" allow-default=\"0\"></button>"

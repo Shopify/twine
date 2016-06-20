@@ -473,7 +473,8 @@
     }
     setupAttributeBinding('innerHTML', 'unsafe-html');
     preventDefaultForEvent = function(event) {
-      return (event.type === 'submit' || event.currentTarget.nodeName.toLowerCase() === 'a') && Twine.getAttribute(event.currentTarget, 'allow-default') !== '1';
+      var ref1;
+      return (event.type === 'submit' || event.currentTarget.nodeName.toLowerCase() === 'a') && ((ref1 = Twine.getAttribute(event.currentTarget, 'allow-default')) === 'false' || ref1 === false || ref1 === 0 || ref1 === (void 0) || ref1 === null);
     };
     setupEventBinding = function(eventName) {
       return Twine.bindingTypes["bind-event-" + eventName] = function(node, context, definition) {
