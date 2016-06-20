@@ -374,6 +374,171 @@ suite "Twine", ->
         setupView(testView, context = {})
       , 'Twine error: Unable to create function on DIV node with attributes data-define=\'{key: \'value\', key2: \'value2\''
 
+  suite 'data-define-array attribute', ->
+    test 'should mix in the given keys into an array', ->
+      testView = '''
+        <div data-define-array="{key: 'val'}"></div>
+        <div data-define-array="{key: 'other val'}"></div>
+      '''
+
+      setupView(testView, context = {})
+      assert.deepEqual ['val', 'other val'], context.key
+
+    test 'should throw an exception if the key exists but is not an array', ->
+      testView = '<div data-define-array="{key: \'val\'}"></div>'
+
+      assert.throw ->
+        setupView(testView, context = {key: "foo"})
+      , "Twine error: expected 'key' to be an array"
+
+    test 'should be able to access the correct position in the array from inside the element, with or without a context', ->
+      testView = '''
+        <div>
+          <div data-define-array="{key: {value: 'val'}, otherKey: {value: 'other val'}}">
+            <span bind="key.value"></span>
+            <span bind="otherKey.value"></span>
+          </div>
+          <div data-define-array="{key: {value: 'third val'}}" context="key">
+            <span bind="value"></span>
+          </div>
+          <div data-define-array="{key: {value: 'fourth val'}, otherKey: {value: 'fifth val'}}">
+            <span bind="key.value"></span>
+            <span bind="otherKey.value"></span>
+          </div>
+        </div>
+      '''
+
+      node = setupView(testView, context = {})
+      assert.equal 'val',         node.children[0].children[0].textContent
+      assert.equal 'other val',   node.children[0].children[1].textContent
+      assert.equal 'third val',   node.children[1].children[0].textContent
+      assert.equal 'fourth val',  node.children[2].children[0].textContent
+      assert.equal 'fifth val',   node.children[2].children[1].textContent
+
+    test 'should correctly set up newly bound elements with the contexts of defined arrays', ->
+      testView = '''
+        <div>
+          <div data-define-array="{key: {value: 'val'}}"></div>
+          <div data-define-array="{key: {value: 'other val'}}">
+            <div>
+            </div>
+          </div>
+        </div
+      '''
+
+      node = setupView(testView, context = {})
+
+      span = document.createElement('span')
+      span.setAttribute('data-bind', "key.value")
+      node.children[0].appendChild(span)
+
+      span2 = document.createElement('span')
+      span2.setAttribute('data-bind', "key.value")
+      node.children[1].children[0].appendChild(span2)
+
+      Twine.bind(span)
+      Twine.bind(span2)
+      Twine.refreshImmediately()
+
+      assert.equal 'val', span.textContent
+      assert.equal 'other val', span2.textContent
+
+    test 'should work with nested arrays', ->
+      testView = '''
+        <div>
+          <div data-define-array="{key: {value: 5}}">
+            <div data-define-array="{nested: {value: 50}}">
+              <span bind="key.value"></span>
+              <span bind="nested.value"></span>
+            </div>
+            <div data-define-array="{nested: {value: 75}}">
+              <span bind="key.value"></span>
+              <span bind="nested.value"></span>
+            </div>
+          </div>
+          <div data-define-array="{key: {value: 10}}">
+            <div data-define-array="{nested: {value: 100}}">
+              <span bind="key.value"></span>
+              <span bind="nested.value"></span>
+            </div>
+            <div data-define-array="{nested: {value: 125}}">
+              <span bind="key.value"></span>
+              <span bind="nested.value"></span>
+            </div>
+          </div>
+        </div>
+      '''
+
+      node = setupView(testView, context = {})
+
+      assert.equal "5",   node.children[0].children[0].children[0].textContent
+      assert.equal "50",  node.children[0].children[0].children[1].textContent
+      assert.equal "5",   node.children[0].children[1].children[0].textContent
+      assert.equal "75",  node.children[0].children[1].children[1].textContent
+      assert.equal "10",  node.children[1].children[0].children[0].textContent
+      assert.equal "100", node.children[1].children[0].children[1].textContent
+      assert.equal "10",  node.children[1].children[1].children[0].textContent
+      assert.equal "125", node.children[1].children[1].children[1].textContent
+
+    test 'only the first key in a keypath gets treated like an array', ->
+      testView = '''
+        <div data-define-array="{key: {value: 5}, value: 25}">
+          <span bind="key.value"></span>
+        </div>
+      '''
+
+      node = setupView(testView, context = {})
+
+      assert.equal "5", node.children[0].textContent
+
+    test 'should work with function calls and nested arrays', ->
+      testView = '''
+        <div>
+          <div data-define-array="{key: {foo: function(){ return 5; }}}">
+            <div data-define-array="{nested: {bar: function(){ return 50; }}}">
+              <span bind="key.foo()"></span>
+              <span bind="nested.bar()"></span>
+            </div>
+            <div data-define-array="{nested: {bar: function(){ return 75; }}}">
+              <span bind="key.foo()"></span>
+              <span bind="nested.bar()"></span>
+            </div>
+          </div>
+          <div data-define-array="{key: {foo: function(){ return 10; }}}">
+            <div data-define-array="{nested: {bar: function(){ return 100; }}}">
+              <span bind="key.foo()"></span>
+              <span bind="nested.bar()"></span>
+            </div>
+            <div data-define-array="{nested: {bar: function(){ return 125; }}}">
+              <span bind="key.foo()"></span>
+              <span bind="nested.bar()"></span>
+            </div>
+          </div>
+        </div>
+      '''
+
+      node = setupView(testView, context = {})
+      assert.equal "5",   node.children[0].children[0].children[0].textContent
+      assert.equal "50",  node.children[0].children[0].children[1].textContent
+      assert.equal "5",   node.children[0].children[1].children[0].textContent
+      assert.equal "75",  node.children[0].children[1].children[1].textContent
+      assert.equal "10",  node.children[1].children[0].children[0].textContent
+      assert.equal "100", node.children[1].children[0].children[1].textContent
+      assert.equal "10",  node.children[1].children[1].children[0].textContent
+      assert.equal "125", node.children[1].children[1].children[1].textContent
+
+    test 'should not give child contexts access to the array indexes', ->
+      testView = '''
+        <div data-define-array="{key: {foo: function(){ return 5; }}}" context="key">
+          <div eval="$context.key = 'abcd'">
+            <span bind="key"></span>
+          </div>
+        </div>
+      '''
+
+      node = setupView(testView, context = {})
+      assert.equal 'abcd', node.children[0].children[0].textContent
+
   suite "data-eval attribute", ->
     test "should call the given code", ->
       testView = "<span data-eval='myArray.push(\"stuff\")'></span>"

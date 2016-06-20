@@ -10,7 +10,7 @@
       return root.Twine = factory();
     }
   })(this, function() {
-    var Twine, attribute, bind, currentBindingCallbacks, elements, eventName, fireCustomChangeEvent, getContext, getValue, isKeypath, j, k, keypathForKey, keypathRegex, len, len1, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupAttributeBinding, setupEventBinding, stringifyNodeAttributes, valueAttributeForNode, wrapFunctionString;
+    var Twine, arrayPointersForNode, attribute, bind, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeCount, nodeHasArrayIndexes, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupAttributeBinding, setupEventBinding, stringifyNodeAttributes, valueAttributeForNode, wrapFunctionString;
     Twine = {};
     Twine.shouldDiscardEvent = {};
     elements = {};
@@ -52,7 +52,7 @@
       if (context == null) {
         context = Twine.context(node);
       }
-      return bind(context, node, true);
+      return bind(context, node, getIndexesForElement(node), true);
     };
     Twine.afterBound = function(callback) {
       if (currentBindingCallbacks) {
@@ -61,22 +61,37 @@
         return callback();
       }
     };
-    bind = function(context, node, forceSaveContext) {
-      var binding, callback, callbacks, childNode, definition, element, fn, j, k, keypath, len, len1, newContextKey, ref, ref1, ref2, type;
+    bind = function(context, node, indexes, forceSaveContext) {
+      var binding, callback, callbacks, childNode, defineArrayAttr, definition, element, fn, j, k, key, keypath, len, len1, newContextKey, newIndexes, ref, ref1, ref2, ref3, type, value;
       currentBindingCallbacks = [];
       if (node.bindingId) {
         Twine.unbind(node);
       }
-      ref = Twine.bindingTypes;
-      for (type in ref) {
-        binding = ref[type];
+      if (defineArrayAttr = Twine.getAttribute(node, 'define-array')) {
+        newIndexes = defineArray(node, context, defineArrayAttr);
+        ref = indexes || {};
+        for (key in ref) {
+          value = ref[key];
+          if (newIndexes[key] == null) {
+            newIndexes[key] = value;
+          }
+        }
+        indexes = newIndexes;
+        element = findOrCreateElementForNode(node);
+        element.indexes = indexes;
+      }
+      ref1 = Twine.bindingTypes;
+      for (type in ref1) {
+        binding = ref1[type];
         if (!(definition = Twine.getAttribute(node, type))) {
           continue;
         }
-        if (!element) {
-          element = {
-            bindings: []
-          };
+        element = findOrCreateElementForNode(node);
+        if (element.bindings == null) {
+          element.bindings = [];
+        }
+        if (element.indexes == null) {
+          element.indexes = indexes;
         }
         fn = binding(node, context, definition, element);
         if (fn) {
@@ -84,7 +99,7 @@
         }
       }
       if (newContextKey = Twine.getAttribute(node, 'context')) {
-        keypath = keypathForKey(newContextKey);
+        keypath = keypathForKey(node, newContextKey);
         if (keypath[0] === '$root') {
           context = rootContext;
           keypath = keypath.slice(1);
@@ -92,23 +107,37 @@
         context = getValue(context, keypath) || setValue(context, keypath, {});
       }
       if (element || newContextKey || forceSaveContext) {
-        (element != null ? element : element = {}).childContext = context;
+        element = findOrCreateElementForNode(node);
+        element.childContext = context;
+        if (element.indexes == null) {
+          element.indexes = indexes;
+        }
         elements[node.bindingId != null ? node.bindingId : node.bindingId = ++nodeCount] = element;
       }
       callbacks = currentBindingCallbacks;
-      ref1 = node.children || [];
-      for (j = 0, len = ref1.length; j < len; j++) {
-        childNode = ref1[j];
-        bind(context, childNode);
+      ref2 = node.children || [];
+      for (j = 0, len = ref2.length; j < len; j++) {
+        childNode = ref2[j];
+        bind(context, childNode, newContextKey != null ? null : indexes);
       }
       Twine.count = nodeCount;
-      ref2 = callbacks || [];
-      for (k = 0, len1 = ref2.length; k < len1; k++) {
-        callback = ref2[k];
+      ref3 = callbacks || [];
+      for (k = 0, len1 = ref3.length; k < len1; k++) {
+        callback = ref3[k];
         callback();
       }
       currentBindingCallbacks = null;
       return Twine;
+    };
+    findOrCreateElementForNode = function(node) {
+      var name1;
+      if (node.bindingId == null) {
+        node.bindingId = ++nodeCount;
+      }
+      if (elements[name1 = node.bindingId] == null) {
+        elements[name1] = {};
+      }
+      return elements[node.bindingId];
     };
     Twine.refresh = function() {
       if (refreshQueued) {
@@ -201,6 +230,16 @@
         }
       }
     };
+    getIndexesForElement = function(node) {
+      var firstContext, id, ref;
+      firstContext = null;
+      while (node) {
+        if (id = node.bindingId) {
+          return (ref = elements[id]) != null ? ref.indexes : void 0;
+        }
+        node = node.parentNode;
+      }
+    };
     Twine.contextKey = function(node, lastContext) {
       var addKey, context, id, keys, ref;
       keys = [];
@@ -239,24 +278,41 @@
         return 'textContent';
       }
     };
-    keypathForKey = function(key) {
-      var end, j, keypath, len, ref, start;
+    keypathForKey = function(node, key) {
+      var end, i, j, keypath, len, ref, start;
       keypath = [];
       ref = key.split('.');
-      for (j = 0, len = ref.length; j < len; j++) {
-        key = ref[j];
+      for (i = j = 0, len = ref.length; j < len; i = ++j) {
+        key = ref[i];
         if ((start = key.indexOf('[')) !== -1) {
-          keypath.push(key.substr(0, start));
+          if (i === 0) {
+            keypath.push.apply(keypath, keyWithArrayIndex(key.substr(0, start), node));
+          } else {
+            keypath.push(key.substr(0, start));
+          }
           key = key.substr(start);
           while ((end = key.indexOf(']')) !== -1) {
             keypath.push(parseInt(key.substr(1, end), 10));
             key = key.substr(end + 1);
           }
         } else {
-          keypath.push(key);
+          if (i === 0) {
+            keypath.push.apply(keypath, keyWithArrayIndex(key, node));
+          } else {
+            keypath.push(key);
+          }
         }
       }
       return keypath;
+    };
+    keyWithArrayIndex = function(key, node) {
+      var index, ref, ref1;
+      index = (ref = elements[node.bindingId]) != null ? (ref1 = ref.indexes) != null ? ref1[key] : void 0 : void 0;
+      if (index != null) {
+        return [key, index];
+      } else {
+        return [key];
+      }
     };
     getValue = function(object, keypath) {
       var j, key, len;
@@ -291,7 +347,7 @@
     };
     wrapFunctionString = function(code, args, node) {
       var e, error, keypath;
-      if (isKeypath(code) && (keypath = keypathForKey(code))) {
+      if (isKeypath(code) && (keypath = keypathForKey(node, code))) {
         if (keypath[0] === '$root') {
           return function($context, $root) {
             return getValue($root, keypath);
@@ -303,6 +359,9 @@
         }
       } else {
         code = "return " + code;
+        if (nodeHasArrayIndexes(node)) {
+          code = "with($arrayPointers) { " + code + " }";
+        }
         if (requiresRegistry(args)) {
           code = "with($registry) { " + code + " }";
         }
@@ -316,6 +375,29 @@
     };
     requiresRegistry = function(args) {
       return /\$registry/.test(args);
+    };
+    nodeHasArrayIndexes = function(node) {
+      var ref;
+      if (node.bindingId == null) {
+        return;
+      }
+      return !(((ref = elements[node.bindingId]) != null ? ref.indexes : void 0) == null);
+    };
+    arrayPointersForNode = function(node, context) {
+      var index, indexes, key, ref, result;
+      if (node.bindingId == null) {
+        return {};
+      }
+      indexes = (ref = elements[node.bindingId]) != null ? ref.indexes : void 0;
+      if (indexes == null) {
+        return {};
+      }
+      result = {};
+      for (key in indexes) {
+        index = indexes[key];
+        result[key] = context[key][index];
+      }
+      return result;
     };
     isKeypath = function(value) {
       return (value !== 'true' && value !== 'false' && value !== 'null' && value !== 'undefined') && keypathRegex.test(value);
@@ -334,10 +416,10 @@
         lastValue = void 0;
         teardown = void 0;
         checkedValueType = node.getAttribute('type') === 'radio';
-        fn = wrapFunctionString(definition, '$context,$root', node);
+        fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
         refresh = function() {
           var newValue;
-          newValue = fn.call(node, context, rootContext);
+          newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context));
           if (newValue === lastValue) {
             return;
           }
@@ -363,7 +445,7 @@
             return setValue(context, keypath, node[valueAttribute]);
           }
         };
-        keypath = keypathForKey(definition);
+        keypath = keypathForKey(node, definition);
         twoWayBinding = valueAttribute !== 'textContent' && node.type !== 'hidden';
         if (keypath[0] === '$root') {
           context = rootContext;
@@ -392,12 +474,12 @@
       },
       'bind-show': function(node, context, definition) {
         var fn, lastValue;
-        fn = wrapFunctionString(definition, '$context,$root', node);
+        fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
         lastValue = void 0;
         return {
           refresh: function() {
             var newValue;
-            newValue = !fn.call(node, context, rootContext);
+            newValue = !fn.call(node, context, rootContext, arrayPointersForNode(node, context));
             if (newValue === lastValue) {
               return;
             }
@@ -407,12 +489,12 @@
       },
       'bind-class': function(node, context, definition) {
         var fn, lastValue;
-        fn = wrapFunctionString(definition, '$context,$root', node);
+        fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
         lastValue = {};
         return {
           refresh: function() {
             var key, newValue, value;
-            newValue = fn.call(node, context, rootContext);
+            newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context));
             for (key in newValue) {
               value = newValue[key];
               if (!lastValue[key] !== !value) {
@@ -425,12 +507,12 @@
       },
       'bind-attribute': function(node, context, definition) {
         var fn, lastValue;
-        fn = wrapFunctionString(definition, '$context,$root', node);
+        fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
         lastValue = {};
         return {
           refresh: function() {
             var key, newValue, value;
-            newValue = fn.call(node, context, rootContext);
+            newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context));
             for (key in newValue) {
               value = newValue[key];
               if (lastValue[key] !== value) {
@@ -443,8 +525,8 @@
       },
       define: function(node, context, definition) {
         var fn, key, object, value;
-        fn = wrapFunctionString(definition, '$context,$root,$registry', node);
-        object = fn.call(node, context, rootContext, registry);
+        fn = wrapFunctionString(definition, '$context,$root,$registry,$arrayPointers', node);
+        object = fn.call(node, context, rootContext, registry, arrayPointersForNode(node, context));
         for (key in object) {
           value = object[key];
           context[key] = value;
@@ -452,21 +534,39 @@
       },
       "eval": function(node, context, definition) {
         var fn;
-        fn = wrapFunctionString(definition, '$context,$root,$registry', node);
-        fn.call(node, context, rootContext, registry);
+        fn = wrapFunctionString(definition, '$context,$root,$registry,$arrayPointers', node);
+        fn.call(node, context, rootContext, registry, arrayPointersForNode(node, context));
       }
+    };
+    defineArray = function(node, context, definition) {
+      var fn, indexes, key, object, value;
+      fn = wrapFunctionString(definition, '$context,$root', node);
+      object = fn.call(node, context, rootContext);
+      indexes = {};
+      for (key in object) {
+        value = object[key];
+        if (context[key] == null) {
+          context[key] = [];
+        }
+        if (!(context[key] instanceof Array)) {
+          throw "Twine error: expected '" + key + "' to be an array";
+        }
+        indexes[key] = context[key].length;
+        context[key].push(value);
+      }
+      return indexes;
     };
     setupAttributeBinding = function(attributeName, bindingName) {
       var booleanAttribute;
       booleanAttribute = attributeName === 'checked' || attributeName === 'indeterminate' || attributeName === 'disabled' || attributeName === 'readOnly';
       return Twine.bindingTypes["bind-" + bindingName] = function(node, context, definition) {
         var fn, lastValue;
-        fn = wrapFunctionString(definition, '$context,$root', node);
+        fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
         lastValue = void 0;
         return {
           refresh: function() {
             var newValue;
-            newValue = fn.call(node, context, rootContext);
+            newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context));
             if (booleanAttribute) {
               newValue = !!newValue;
             }
@@ -503,7 +603,7 @@
           if (discardEvent) {
             return;
           }
-          wrapFunctionString(definition, '$context,$root,event,data', node).call(node, context, rootContext, event, data);
+          wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data);
           return Twine.refreshImmediately();
         };
         $(node).on(eventName, onEventHandler);
