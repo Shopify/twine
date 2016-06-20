@@ -38,7 +38,7 @@ Twine.reset = (newContext, node = document.documentElement) ->
   this
 
 Twine.bind = (node = rootNode, context = Twine.context(node)) ->
-  bind(context, node, true)
+  bind(context, node, getIndexesForElement(node), true)
 
 Twine.afterBound = (callback) ->
   if currentBindingCallbacks
@@ -46,25 +46,39 @@ Twine.afterBound = (callback) ->
   else
     callback()
 
-bind = (context, node, forceSaveContext) ->
+bind = (context, node, indexes, forceSaveContext) ->
   currentBindingCallbacks = []
   if node.bindingId
     Twine.unbind(node)
 
+  if defineArrayAttr = Twine.getAttribute(node, 'define-array')
+    newIndexes = defineArray(node, context, defineArrayAttr)
+    for key, value of indexes || {} when !newIndexes[key]?
+      newIndexes[key] = value
+    indexes = newIndexes
+    # register the element early because subsequent bindings on the same node might need to make use of the index
+    element = findOrCreateElementForNode(node)
+    element.indexes = indexes
+
   for type, binding of Twine.bindingTypes when definition = Twine.getAttribute(node, type)
-    element = {bindings: []} unless element  # Defer allocation to prevent GC pressure
+    element = findOrCreateElementForNode(node)
+    element.bindings ?= []
+    element.indexes ?= indexes
+
     fn = binding(node, context, definition, element)
     element.bindings.push(fn) if fn
 
   if newContextKey = Twine.getAttribute(node, 'context')
-    keypath = keypathForKey(newContextKey)
+    keypath = keypathForKey(node, newContextKey)
     if keypath[0] == '$root'
       context = rootContext
       keypath = keypath.slice(1)
     context = getValue(context, keypath) || setValue(context, keypath, {})
 
   if element || newContextKey || forceSaveContext
-    (element ?= {}).childContext = context
+    element = findOrCreateElementForNode(node)
+    element.childContext = context
+    element.indexes ?= indexes
     elements[node.bindingId ?= ++nodeCount] = element
 
   callbacks = currentBindingCallbacks
@@ -74,7 +88,7 @@ bind = (context, node, forceSaveContext) ->
   # we stop traversing that subtree.
   # https://developer.mozilla.org/en-US/docs/Web/API/ParentNode.children
   # As a result, Twine are unsupported within DocumentFragment and SVGElement nodes.
-  bind(context, childNode) for childNode in (node.children || [])
+  bind(context, childNode, if newContextKey? then null else indexes) for childNode in (node.children || [])
   Twine.count = nodeCount
 
   for callback in callbacks || []
@@ -82,6 +96,11 @@ bind = (context, node, forceSaveContext) ->
   currentBindingCallbacks = null
 
   Twine
+
+findOrCreateElementForNode = (node) ->
+  node.bindingId ?= ++nodeCount
+  elements[node.bindingId] ?= {}
+  elements[node.bindingId]
 
 # Queues a refresh of the DOM, batching up calls for the current synchronous block.
 Twine.refresh = ->
@@ -139,6 +158,13 @@ getContext = (node, child) ->
       return context
     node = node.parentNode if child
 
+getIndexesForElement = (node) ->
+  firstContext = null
+  while node
+    return elements[id]?.indexes if id = node.bindingId
+    node = node.parentNode
+  return
+
 # Returns the fully qualified key for a node's context
 Twine.contextKey = (node, lastContext) ->
   keys = []
@@ -161,19 +187,32 @@ valueAttributeForNode = (node) ->
   else
     'textContent'
 
-keypathForKey = (key) ->
+keypathForKey = (node, key) ->
   keypath = []
-  for key in key.split('.')
+  for key, i in key.split('.')
     if (start = key.indexOf('[')) != -1
-      keypath.push(key.substr(0, start))
+      if i == 0
+        keypath.push(keyWithArrayIndex(key.substr(0, start), node)...)
+      else
+        keypath.push(key.substr(0, start))
       key = key.substr(start)
 
       while (end = key.indexOf(']')) != -1
         keypath.push(parseInt(key.substr(1, end), 10))
         key = key.substr(end + 1)
     else
-      keypath.push(key)
+      if i == 0
+        keypath.push(keyWithArrayIndex(key, node)...)
+      else
+        keypath.push(key)
   keypath
+
+keyWithArrayIndex = (key, node) ->
+  index = elements[node.bindingId]?.indexes?[key]
+  if index?
+    [key, index]
+  else
+    [key]
 
 getValue = (object, keypath) ->
   object = object[key] for key in keypath when object?
@@ -196,13 +235,14 @@ stringifyNodeAttributes = (node) ->
   result
 
 wrapFunctionString = (code, args, node) ->
-  if isKeypath(code) && keypath = keypathForKey(code)
+  if isKeypath(code) && keypath = keypathForKey(node, code)
     if keypath[0] == '$root'
       ($context, $root) -> getValue($root, keypath)
     else
       ($context, $root) -> getValue($context, keypath)
   else
     code = "return #{code}"
+    code = "with($arrayPointers) { #{code} }" if nodeHasArrayIndexes(node)
     code = "with($registry) { #{code} }" if requiresRegistry(args)
     try
       new Function(args, "with($context) { #{code} }")
@@ -210,6 +250,20 @@ wrapFunctionString = (code, args, node) ->
       throw "Twine error: Unable to create function on #{node.nodeName} node with attributes #{stringifyNodeAttributes(node)}"
 
 requiresRegistry = (args) -> /\$registry/.test(args)
+
+nodeHasArrayIndexes = (node) ->
+  return unless node.bindingId?
+  !!elements[node.bindingId]?.indexes?
+
+arrayPointersForNode = (node, context) ->
+  return unless node.bindingId?
+  indexes = elements[node.bindingId]?.indexes
+  return unless !!indexes?
+
+  result = {}
+  for key, index of indexes
+    result[key] = context[key][index]
+  result
 
 isKeypath = (value) ->
   value not in ['true', 'false', 'null', 'undefined'] and keypathRegex.test(value)
@@ -228,10 +282,10 @@ Twine.bindingTypes =
 
     # Radio buttons only set the value to the node value if checked.
     checkedValueType = node.getAttribute('type') == 'radio'
-    fn = wrapFunctionString(definition, '$context,$root', node)
+    fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
 
     refresh = ->
-      newValue = fn.call(node, context, rootContext)
+      newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
       return if newValue == lastValue # return if we can and avoid a DOM operation
 
       lastValue = newValue
@@ -249,7 +303,7 @@ Twine.bindingTypes =
       else
         setValue(context, keypath, node[valueAttribute])
 
-    keypath = keypathForKey(definition)
+    keypath = keypathForKey(node, definition)
     twoWayBinding = valueAttribute != 'textContent' && node.type != 'hidden'
 
     if keypath[0] == '$root'
@@ -271,50 +325,65 @@ Twine.bindingTypes =
     {refresh, teardown}
 
   'bind-show': (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root', node)
+    fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
     lastValue = undefined
     return refresh: ->
-      newValue = !fn.call(node, context, rootContext)
+      newValue = !fn.call(node, context, rootContext, arrayPointersForNode(node, context))
       return if newValue == lastValue
       $(node).toggleClass('hide', lastValue = newValue)
 
   'bind-class': (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root', node)
+    fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
     lastValue = {}
     return refresh: ->
-      newValue = fn.call(node, context, rootContext)
+      newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
       for key, value of newValue when !lastValue[key] != !value
         $(node).toggleClass(key, !!value)
       lastValue = newValue
 
   'bind-attribute': (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root', node)
+    fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
     lastValue = {}
     return refresh: ->
-      newValue = fn.call(node, context, rootContext)
+      newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
       for key, value of newValue when lastValue[key] != value
         $(node).attr(key, value || null)
       lastValue = newValue
 
   define: (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root,$registry', node)
-    object = fn.call(node, context, rootContext, registry)
+    fn = wrapFunctionString(definition, '$context,$root,$registry,$arrayPointers', node)
+    object = fn.call(node, context, rootContext, registry, arrayPointersForNode(node, context))
     context[key] = value for key, value of object
     return
 
   eval: (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root,$registry', node)
-    fn.call(node, context, rootContext, registry)
+    fn = wrapFunctionString(definition, '$context,$root,$registry,$arrayPointers', node)
+    fn.call(node, context, rootContext, registry, arrayPointersForNode(node, context))
     return
+
+defineArray = (node, context, definition) ->
+  fn = wrapFunctionString(definition, '$context,$root', node)
+  object = fn.call(node, context, rootContext)
+
+  indexes = {}
+
+  for key, value of object
+    context[key] ?= []
+    throw "Twine error: expected '#{key}' to be an array" unless context[key] instanceof Array
+
+    indexes[key] = context[key].length
+    context[key].push(value)
+
+  indexes
 
 setupAttributeBinding = (attributeName, bindingName) ->
   booleanAttribute = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly']
 
   Twine.bindingTypes["bind-#{bindingName}"] = (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root', node)
+    fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
     lastValue = undefined
     return refresh: ->
-      newValue = fn.call(node, context, rootContext)
+      newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
       newValue = !!newValue if booleanAttribute
       return if newValue == lastValue
       node[attributeName] = lastValue = newValue
@@ -339,7 +408,7 @@ setupEventBinding = (eventName) ->
 
       return if discardEvent
 
-      wrapFunctionString(definition, '$context,$root,event,data', node).call(node, context, rootContext, event, data)
+      wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data)
       Twine.refreshImmediately()
     $(node).on eventName, onEventHandler
 
