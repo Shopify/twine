@@ -6,7 +6,6 @@ up:
       packages:
         - .
   - ruby:
-      package: shopify/shopify/shopify-ruby
       version: 2.3.1
   - bundler
 
