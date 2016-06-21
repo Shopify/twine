@@ -23,7 +23,9 @@ Twine is available on bower via `bower install twine` if that is your preference
 
 Twine comes as `dist/twine.js` and `dist/twine.min.js` in this repo and in the bower package.
 
-Twine is also available as a gem.  In your Gemfile, add `gem 'twine-rails'` and include it in your `application.js` manifest via `//= require twine`
+Twine is also available as a gem. In your Gemfile, add `gem 'twine-rails'` and include it in your `application.js` manifest via `//= require twine`
+
+AMD, CommonJS and Browser global (using UMD) are also supported.
 
 ## Usage
 
@@ -127,6 +129,24 @@ Example:
   Twine.shouldDiscardEvent.click = (event) ->
     $target = $(event.target)
     $target.hasClass('disabled')
+```
+
+## Twine.register
+
+Lets you add constructors, modules, functions, etc to Twine that are not globally available. This means you can keep your classes etc
+as local variables and Twine will find them for you within `define`s & `eval`s.
+
+```coffee
+  # local_class.coffee
+
+  class LocalClass
+    # ...
+
+  Twine.register('LocalClass', LocalClass)
+```
+
+```html
+  <div define="{localClass: new LocalClass()}"></div>
 ```
 
 ## Dev Console
