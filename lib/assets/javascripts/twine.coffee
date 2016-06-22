@@ -61,7 +61,8 @@
 
     if defineArrayAttr = Twine.getAttribute(node, 'define-array')
       newIndexes = defineArray(node, context, defineArrayAttr)
-      for key, value of indexes || {} when !newIndexes[key]?
+      indexes ?= {}
+      for key, value of indexes when !newIndexes.hasOwnProperty(key)
         newIndexes[key] = value
       indexes = newIndexes
       # register the element early because subsequent bindings on the same node might need to make use of the index
@@ -86,8 +87,7 @@
     if element || newContextKey || forceSaveContext
       element = findOrCreateElementForNode(node)
       element.childContext = context
-      element.indexes ?= indexes
-      elements[node.bindingId ?= ++nodeCount] = element
+      element.indexes ?= indexes if indexes?
 
     callbacks = currentBindingCallbacks
 
@@ -171,7 +171,6 @@
     while node
       return elements[id]?.indexes if id = node.bindingId
       node = node.parentNode
-    return
 
   # Returns the fully qualified key for a node's context
   Twine.contextKey = (node, lastContext) ->
@@ -266,7 +265,7 @@
   arrayPointersForNode = (node, context) ->
     return {} unless node.bindingId?
     indexes = elements[node.bindingId]?.indexes
-    return {} unless !!indexes?
+    return {} unless indexes?
 
     result = {}
     for key, index of indexes

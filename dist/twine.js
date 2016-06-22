@@ -62,17 +62,19 @@
       }
     };
     bind = function(context, node, indexes, forceSaveContext) {
-      var binding, callback, callbacks, childNode, defineArrayAttr, definition, element, fn, j, k, key, keypath, len, len1, newContextKey, newIndexes, ref, ref1, ref2, ref3, type, value;
+      var binding, callback, callbacks, childNode, defineArrayAttr, definition, element, fn, j, k, key, keypath, len, len1, newContextKey, newIndexes, ref, ref1, ref2, type, value;
       currentBindingCallbacks = [];
       if (node.bindingId) {
         Twine.unbind(node);
       }
       if (defineArrayAttr = Twine.getAttribute(node, 'define-array')) {
         newIndexes = defineArray(node, context, defineArrayAttr);
-        ref = indexes || {};
-        for (key in ref) {
-          value = ref[key];
-          if (newIndexes[key] == null) {
+        if (indexes == null) {
+          indexes = {};
+        }
+        for (key in indexes) {
+          value = indexes[key];
+          if (!newIndexes.hasOwnProperty(key)) {
             newIndexes[key] = value;
           }
         }
@@ -80,9 +82,9 @@
         element = findOrCreateElementForNode(node);
         element.indexes = indexes;
       }
-      ref1 = Twine.bindingTypes;
-      for (type in ref1) {
-        binding = ref1[type];
+      ref = Twine.bindingTypes;
+      for (type in ref) {
+        binding = ref[type];
         if (!(definition = Twine.getAttribute(node, type))) {
           continue;
         }
@@ -109,21 +111,22 @@
       if (element || newContextKey || forceSaveContext) {
         element = findOrCreateElementForNode(node);
         element.childContext = context;
-        if (element.indexes == null) {
-          element.indexes = indexes;
+        if (indexes != null) {
+          if (element.indexes == null) {
+            element.indexes = indexes;
+          }
         }
-        elements[node.bindingId != null ? node.bindingId : node.bindingId = ++nodeCount] = element;
       }
       callbacks = currentBindingCallbacks;
-      ref2 = node.children || [];
-      for (j = 0, len = ref2.length; j < len; j++) {
-        childNode = ref2[j];
+      ref1 = node.children || [];
+      for (j = 0, len = ref1.length; j < len; j++) {
+        childNode = ref1[j];
         bind(context, childNode, newContextKey != null ? null : indexes);
       }
       Twine.count = nodeCount;
-      ref3 = callbacks || [];
-      for (k = 0, len1 = ref3.length; k < len1; k++) {
-        callback = ref3[k];
+      ref2 = callbacks || [];
+      for (k = 0, len1 = ref2.length; k < len1; k++) {
+        callback = ref2[k];
         callback();
       }
       currentBindingCallbacks = null;
