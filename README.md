@@ -1,7 +1,9 @@
 twine
 -----
 
-[![Build Status](https://secure.travis-ci.org/Shopify/twine.png)](http://travis-ci.org/Shopify/twine)
+[![Gem Version](https://badge.fury.io/rb/twine-rails.svg)](http://badge.fury.io/rb/twine-rails)
+[![Bower version](https://badge.fury.io/bo/twine.svg)](http://badge.fury.io/bo/twine)
+[![Build Status](https://secure.travis-ci.org/Shopify/twine.svg)](http://travis-ci.org/Shopify/twine)
 
 [Demonstration](http://shopify.github.io/twine/)
 
@@ -21,7 +23,9 @@ Twine is available on bower via `bower install twine` if that is your preference
 
 Twine comes as `dist/twine.js` and `dist/twine.min.js` in this repo and in the bower package.
 
-Twine is also available as a gem.  In your Gemfile, add `gem 'twine-rails'` and include it in your `application.js` manifest via `//= require twine`
+Twine is also available as a gem. In your Gemfile, add `gem 'twine-rails'` and include it in your `application.js` manifest via `//= require twine`
+
+AMD, CommonJS and Browser global (using UMD) are also supported.
 
 ## Usage
 
@@ -29,9 +33,9 @@ Twine can be initialized simply with the following:
 
 ```html
 <script type="text/javascript">
-  context = {}
+  var context = {};
   $(function() {
-    Twine.reset(context).bind().refresh()
+    Twine.reset(context).bind().refresh();
   });
 </script>
 ```
@@ -95,6 +99,66 @@ $(document).ajaxComplete ->
   Twine.refresh()
 ```
 
+## Twine.afterBound
+
+Registers a function to be called when the currently binding node and its children have finished binding.
+
+Example:
+
+```coffee
+  class Foo
+    constructor: ->
+      Twine.afterBound ->
+        console.log("done")
+
+    # other methods needed in the context
+    # ...
+```
+
+```html
+<div context='bar' define='{bar: new Foo}'></div>
+```
+
+## Twine.shouldDiscardEvent
+
+Lets you register a function to ignore certain events in order to improve performance. If the function you set returns true, then the event processing chain will be halted
+
+Example:
+
+```coffee
+  Twine.shouldDiscardEvent.click = (event) ->
+    $target = $(event.target)
+    $target.hasClass('disabled')
+```
+
+## Twine.register
+
+Lets you add constructors, modules, functions, etc to Twine that are not globally available. This means you can keep your classes etc
+as local variables and Twine will find them for you within `define`s & `eval`s.
+
+```coffee
+  # local_class.coffee
+
+  class LocalClass
+    # ...
+
+  Twine.register('LocalClass', LocalClass)
+```
+
+```html
+  <div define="{localClass: new LocalClass()}"></div>
+```
+
+## Dev Console
+
+To get the current context in the dev console, inspect an element then type:
+
+```javascript
+Twine.context($0)
+```
+
+Where context expects a node and `$0` is shorthand for the current node in the dev console.
+
 ## Contributing
 
 1. Clone the repo: `git clone git@github.com:Shopify/twine`
@@ -108,4 +172,5 @@ $(document).ajaxComplete ->
 
 1. Update version number in `package.json`, `bower.json`, and `lib/twine-rails/version.rb`
 2. Run `bundle install` to update `Gemfile.lock`
-3. Push the new tag to GitHub and the new version to rubygems with `bundle exec rake release`
+3. Run make .all && make .uglify to update JS
+4. Push the new tag to GitHub and the new version to rubygems with `bundle exec rake release`

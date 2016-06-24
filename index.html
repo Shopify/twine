@@ -193,6 +193,59 @@ Twine.reset(context).bind().refresh();
 
 <p>This can be pretty useful for when you want to use <code>bind-show</code> and start in a visible state.</p>
 
+<p><code>context</code> lets you change the current context for every element nested inside.</p>
+
+<div class="prepend-pre">
+<div define="{object: {value: 'foo'} }" context="object">
+  <span bind="value"></span> <!-- object.value from inside the context of object -->
+</div>
+<div>
+  <span bind="object.value"> <!-- object.value from outside the context of object -->
+</div>
+</div>
+
+<h2>Define-array</h2>
+<p><code>define-array</code> lets you define an array of objects one at a time in the context and implicitly reference the correct member in the array.</p>
+
+<div class="prepend-pre">
+<div data-define-array="{widgets: {value: 5, foo: function(){ return 12; }}}">
+  <div data-define-array="{things: {value: 50}}">
+    <span bind="widgets.value">5</span> <!-- widgets[0].value -->
+    <span bind="widgets.foo()">12</span> <!-- widgets[0].foo() -->
+    <span bind="things.value">50</span> <!-- things[0].value -->
+  </div>
+  <div data-define-array="{things: {value: 75}}">
+    <span bind="widgets.value">5</span> <!-- widgets[0].value -->
+    <span bind="widgets.foo()">12</span> <!-- widgets[0].foo() -->
+    <span bind="things.value">75</span> <!-- things[1].value -->
+  </div>
+</div>
+<div data-define-array="{widgets: {value: 10, foo: function(){ return 99; }}}">
+  <div data-define-array="{things: {value: 100}}">
+    <span bind="widgets.value">10</span> <!-- widgets[1].value -->
+    <span bind="widgets.foo()">99</span> <!-- widgets[1].foo() -->
+    <span bind="things.value">100</span> <!-- things[2].value -->
+  </div>
+  <div data-define-array="{things: {value: 125}}">
+    <span bind="widgets.value">10</span> <!-- widgets[1].value -->
+    <span bind="widgets.foo()">99</span> <!-- widgets[1].foo() -->
+    <span bind="things.value">125</span> <!-- things[3].value -->
+  </div>
+</div>
+</div>
+
+<p><code>define-array</code> can also be used with <code>context</code></p>
+<div class="prepend-pre">
+<div data-define-array="{widgets: {value: 5, foo: function(){ return 12; }}}"  context="widgets"> <!-- widgets[0] -->
+  <span bind="widgets.value">5</span> <!-- widgets[0].value -->
+  <span bind="widgets.foo()">12</span> <!-- widgets[0].foo() -->
+</div>
+<div data-define-array="{widgets: {value: 10, foo: function(){ return 99; }}}" context="widgets"> <!-- widgets[1] -->
+  <span bind="widgets.value">10</span> <!-- widgets[1].value -->
+  <span bind="widgets.foo()">99</span> <!-- widgets[1].foo() -->
+</div>
+</div>
+
 <h2>Visibility bindings</h2>
 <p><code>bind-show</code> adds the class <code>hide</code> to the node.  You can then use CSS like <code>.hide { display: none; }</code> or similar to hide the node and its children from view.</p>
 <div class="prepend-pre">
