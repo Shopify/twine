@@ -210,39 +210,39 @@ Twine.reset(context).bind().refresh();
 <div class="prepend-pre">
 <div data-define-array="{widgets: {value: 5, foo: function(){ return 12; }}}">
   <div data-define-array="{things: {value: 50}}">
-    <span bind="widgets.value">5</span> <!-- widgets[0].value -->
-    <span bind="widgets.foo()">12</span> <!-- widgets[0].foo() -->
-    <span bind="things.value">50</span> <!-- things[0].value -->
+    <span bind="widgets.value"></span> <!-- widgets[0].value -->
+    <span bind="widgets.foo()"></span> <!-- widgets[0].foo() -->
+    <span bind="things.value"></span> <!-- things[0].value -->
   </div>
   <div data-define-array="{things: {value: 75}}">
     <span bind="widgets.value">5</span> <!-- widgets[0].value -->
-    <span bind="widgets.foo()">12</span> <!-- widgets[0].foo() -->
-    <span bind="things.value">75</span> <!-- things[1].value -->
+    <span bind="widgets.foo()"></span> <!-- widgets[0].foo() -->
+    <span bind="things.value"></span> <!-- things[1].value -->
   </div>
 </div>
 <div data-define-array="{widgets: {value: 10, foo: function(){ return 99; }}}">
   <div data-define-array="{things: {value: 100}}">
-    <span bind="widgets.value">10</span> <!-- widgets[1].value -->
-    <span bind="widgets.foo()">99</span> <!-- widgets[1].foo() -->
-    <span bind="things.value">100</span> <!-- things[2].value -->
+    <span bind="widgets.value"></span> <!-- widgets[1].value -->
+    <span bind="widgets.foo()"></span> <!-- widgets[1].foo() -->
+    <span bind="things.value"></span> <!-- things[2].value -->
   </div>
   <div data-define-array="{things: {value: 125}}">
-    <span bind="widgets.value">10</span> <!-- widgets[1].value -->
-    <span bind="widgets.foo()">99</span> <!-- widgets[1].foo() -->
-    <span bind="things.value">125</span> <!-- things[3].value -->
+    <span bind="widgets.value"></span> <!-- widgets[1].value -->
+    <span bind="widgets.foo()"></span> <!-- widgets[1].foo() -->
+    <span bind="things.value"></span> <!-- things[3].value -->
   </div>
 </div>
 </div>
 
 <p><code>define-array</code> can also be used with <code>context</code></p>
 <div class="prepend-pre">
-<div data-define-array="{widgets: {value: 5, foo: function(){ return 12; }}}"  context="widgets"> <!-- widgets[0] -->
-  <span bind="widgets.value">5</span> <!-- widgets[0].value -->
-  <span bind="widgets.foo()">12</span> <!-- widgets[0].foo() -->
+<div data-define-array="{objects: {value: 'asdf', foo: function(){ return 'lmnop'; }}}"  context="objects"> <!-- objects[0] -->
+  <span bind="value"></span> <!-- objects[0].value -->
+  <span bind="foo()"></span> <!-- objects[0].foo() -->
 </div>
-<div data-define-array="{widgets: {value: 10, foo: function(){ return 99; }}}" context="widgets"> <!-- widgets[1] -->
-  <span bind="widgets.value">10</span> <!-- widgets[1].value -->
-  <span bind="widgets.foo()">99</span> <!-- widgets[1].foo() -->
+<div data-define-array="{objects: {value: 'xyz', foo: function(){ return 'qrstuv'; }}}" context="objects"> <!-- objects[1] -->
+  <span bind="value"></span> <!-- objects[1].value -->
+  <span bind="foo()"></span> <!-- objects[1].foo() -->
 </div>
 </div>
 
