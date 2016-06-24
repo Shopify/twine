@@ -196,11 +196,11 @@ Twine.reset(context).bind().refresh();
 <p><code>context</code> lets you change the current context for every element nested inside.</p>
 
 <div class="prepend-pre">
-<div define="{object: {value: 'foo'} }" context="foo">
-  <span bind="value"></span> <!-- foo.value from inside the context of foo -->
+<div define="{object: {value: 'foo'} }" context="object">
+  <span bind="value"></span> <!-- object.value from inside the context of object -->
 </div>
 <div>
-  <span bind="foo.value"> <!-- foo.value from outside the context of foo -->
+  <span bind="object.value"> <!-- object.value from outside the context of object -->
 </div>
 </div>
 
@@ -208,41 +208,41 @@ Twine.reset(context).bind().refresh();
 <p><code>define-array</code> lets you define an array of objects one at a time in the context and implicitly reference the correct member in the array.</p>
 
 <div class="prepend-pre">
-<div data-define-array="{key: {value: 5, foo: function(){ return 12; }}}">
-  <div data-define-array="{nested: {value: 50}}">
-    <span bind="key.value">5</span> <!-- key[0].value -->
-    <span bind="key.foo()">12</span> <!-- key[0].foo() -->
-    <span bind="nested.value">50</span> <!-- nested[0].value -->
+<div data-define-array="{widgets: {value: 5, foo: function(){ return 12; }}}">
+  <div data-define-array="{things: {value: 50}}">
+    <span bind="widgets.value">5</span> <!-- widgets[0].value -->
+    <span bind="widgets.foo()">12</span> <!-- widgets[0].foo() -->
+    <span bind="things.value">50</span> <!-- things[0].value -->
   </div>
-  <div data-define-array="{nested: {value: 75}}">
-    <span bind="key.value">5</span> <!-- key[0].value -->
-    <span bind="key.foo()">12</span> <!-- key[0].foo() -->
-    <span bind="nested.value">75</span> <!-- nested[1].value -->
+  <div data-define-array="{things: {value: 75}}">
+    <span bind="widgets.value">5</span> <!-- widgets[0].value -->
+    <span bind="widgets.foo()">12</span> <!-- widgets[0].foo() -->
+    <span bind="things.value">75</span> <!-- things[1].value -->
   </div>
 </div>
-<div data-define-array="{key: {value: 10, foo: function(){ return 99; }}}">
-  <div data-define-array="{nested: {value: 100}}">
-    <span bind="key.value">10</span> <!-- key[1].value -->
-    <span bind="key.foo()">99</span> <!-- key[1].foo() -->
-    <span bind="nested.value">100</span> <!-- nested[2].value -->
+<div data-define-array="{widgets: {value: 10, foo: function(){ return 99; }}}">
+  <div data-define-array="{things: {value: 100}}">
+    <span bind="widgets.value">10</span> <!-- widgets[1].value -->
+    <span bind="widgets.foo()">99</span> <!-- widgets[1].foo() -->
+    <span bind="things.value">100</span> <!-- things[2].value -->
   </div>
-  <div data-define-array="{nested: {value: 125}}">
-    <span bind="key.value">10</span> <!-- key[1].value -->
-    <span bind="key.foo()">99</span> <!-- key[1].foo() -->
-    <span bind="nested.value">125</span> <!-- nested[3].value -->
+  <div data-define-array="{things: {value: 125}}">
+    <span bind="widgets.value">10</span> <!-- widgets[1].value -->
+    <span bind="widgets.foo()">99</span> <!-- widgets[1].foo() -->
+    <span bind="things.value">125</span> <!-- things[3].value -->
   </div>
 </div>
 </div>
 
 <p><code>define-array</code> can also be used with <code>context</code></p>
 <div class="prepend-pre">
-<div data-define-array="{key: {value: 5, foo: function(){ return 12; }}}"  context="key"> <!-- key[0] -->
-  <span bind="key.value">5</span> <!-- key[0].value -->
-  <span bind="key.foo()">12</span> <!-- key[0].foo() -->
+<div data-define-array="{widgets: {value: 5, foo: function(){ return 12; }}}"  context="widgets"> <!-- widgets[0] -->
+  <span bind="widgets.value">5</span> <!-- widgets[0].value -->
+  <span bind="widgets.foo()">12</span> <!-- widgets[0].foo() -->
 </div>
-<div data-define-array="{key: {value: 10, foo: function(){ return 99; }}}" context="key"> <!-- key[1] -->
-  <span bind="key.value">10</span> <!-- key[1].value -->
-  <span bind="key.foo()">99</span> <!-- key[1].foo() -->
+<div data-define-array="{widgets: {value: 10, foo: function(){ return 99; }}}" context="widgets"> <!-- widgets[1] -->
+  <span bind="widgets.value">10</span> <!-- widgets[1].value -->
+  <span bind="widgets.foo()">99</span> <!-- widgets[1].foo() -->
 </div>
 </div>
 
