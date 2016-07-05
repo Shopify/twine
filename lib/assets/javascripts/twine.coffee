@@ -187,7 +187,7 @@
     addKey(rootContext) if node == rootNode
     keys.join('.')
 
-  valueAttributeForNode = (node) ->
+  valuePropertyForNode = (node) ->
     name = node.nodeName.toLowerCase()
     if name in ['input', 'textarea', 'select']
       if node.getAttribute('type') in ['checkbox', 'radio'] then 'checked' else 'value'
@@ -282,8 +282,8 @@
 
   Twine.bindingTypes =
     bind: (node, context, definition) ->
-      valueAttribute = valueAttributeForNode(node)
-      value = node[valueAttribute]
+      valueProp = valuePropertyForNode(node)
+      value = node[valueProp]
       lastValue = undefined
       teardown = undefined
 
@@ -296,9 +296,9 @@
         return if newValue == lastValue # return if we can and avoid a DOM operation
 
         lastValue = newValue
-        return if newValue == node[valueAttribute]
+        return if newValue == node[valueProp]
 
-        node[valueAttribute] = if checkedValueType then newValue == node.value else newValue
+        node[valueProp] = if checkedValueType then newValue == node.value else newValue
         fireCustomChangeEvent(node)
 
       return {refresh} unless isKeypath(definition)
@@ -308,10 +308,10 @@
           return unless node.checked
           setValue(context, keypath, node.value)
         else
-          setValue(context, keypath, node[valueAttribute])
+          setValue(context, keypath, node[valueProp])
 
       keypath = keypathForKey(node, definition)
-      twoWayBinding = valueAttribute != 'textContent' && node.type != 'hidden'
+      twoWayBinding = valueProp != 'textContent' && node.type != 'hidden'
 
       if keypath[0] == '$root'
         context = rootContext
@@ -322,7 +322,7 @@
 
       if twoWayBinding
         changeHandler = ->
-          return if getValue(context, keypath) == this[valueAttribute]
+          return if getValue(context, keypath) == this[valueProp]
           refreshContext()
           Twine.refreshImmediately()
         $(node).on 'input keyup change', changeHandler
@@ -383,24 +383,24 @@
 
     indexes
 
-  setupAttributeBinding = (attributeName, bindingName) ->
-    booleanAttribute = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly']
+  setupPropertyBinding = (attributeName, bindingName) ->
+    booleanProp = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly']
 
     Twine.bindingTypes["bind-#{bindingName}"] = (node, context, definition) ->
       fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
       lastValue = undefined
       return refresh: ->
         newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
-        newValue = !!newValue if booleanAttribute
+        newValue = !!newValue if booleanProp
         return if newValue == lastValue
         node[attributeName] = lastValue = newValue
 
         fireCustomChangeEvent(node) if attributeName == 'checked'
 
   for attribute in ['placeholder', 'checked', 'indeterminate', 'disabled', 'href', 'title', 'readOnly', 'src']
-    setupAttributeBinding(attribute, attribute)
+    setupPropertyBinding(attribute, attribute)
 
-  setupAttributeBinding('innerHTML', 'unsafe-html')
+  setupPropertyBinding('innerHTML', 'unsafe-html')
 
   preventDefaultForEvent = (event) ->
     (event.type == 'submit' || event.currentTarget.nodeName.toLowerCase() == 'a') &&
