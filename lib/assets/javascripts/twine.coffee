@@ -72,7 +72,7 @@
     element = findOrCreateElementForNode(node)
     element.bindings ?= []
     element.indexes ?= indexes
-    Array.from(node.attributes).forEach (attribute) ->
+    Array.prototype.slice.call(node.attributes).forEach (attribute) ->
       type = attribute.name
       type = type.slice(5) if type.startsWith('data-')
       definition = attribute.value
