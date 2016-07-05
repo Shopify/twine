@@ -10,7 +10,7 @@
       return root.Twine = factory();
     }
   })(this, function() {
-    var Twine, arrayPointersForNode, attribute, bind, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeCount, nodeHasArrayIndexes, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
+    var Twine, arrayPointersForNode, attribute, bind, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
     Twine = {};
     Twine.shouldDiscardEvent = {};
     elements = {};
@@ -137,10 +137,7 @@
       if (node.bindingId == null) {
         node.bindingId = ++nodeCount;
       }
-      if (elements[name1 = node.bindingId] == null) {
-        elements[name1] = {};
-      }
-      return elements[node.bindingId];
+      return elements[name1 = node.bindingId] != null ? elements[name1] : elements[name1] = {};
     };
     Twine.refresh = function() {
       if (refreshQueued) {
@@ -355,7 +352,7 @@
         }
       } else {
         code = "return " + code;
-        if (nodeHasArrayIndexes(node)) {
+        if (nodeArrayIndexes(node)) {
           code = "with($arrayPointers) { " + code + " }";
         }
         if (requiresRegistry(args)) {
@@ -372,20 +369,14 @@
     requiresRegistry = function(args) {
       return /\$registry/.test(args);
     };
-    nodeHasArrayIndexes = function(node) {
+    nodeArrayIndexes = function(node) {
       var ref;
-      if (node.bindingId == null) {
-        return;
-      }
-      return !(((ref = elements[node.bindingId]) != null ? ref.indexes : void 0) == null);
+      return (node.bindingId != null) && ((ref = elements[node.bindingId]) != null ? ref.indexes : void 0);
     };
     arrayPointersForNode = function(node, context) {
-      var index, indexes, key, ref, result;
-      if (node.bindingId == null) {
-        return {};
-      }
-      indexes = (ref = elements[node.bindingId]) != null ? ref.indexes : void 0;
-      if (indexes == null) {
+      var index, indexes, key, result;
+      indexes = nodeArrayIndexes(node);
+      if (!indexes) {
         return {};
       }
       result = {};

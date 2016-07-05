@@ -108,7 +108,6 @@
   findOrCreateElementForNode = (node) ->
     node.bindingId ?= ++nodeCount
     elements[node.bindingId] ?= {}
-    elements[node.bindingId]
 
   # Queues a refresh of the DOM, batching up calls for the current synchronous block.
   Twine.refresh = ->
@@ -242,7 +241,7 @@
         ($context, $root) -> getValue($context, keypath)
     else
       code = "return #{code}"
-      code = "with($arrayPointers) { #{code} }" if nodeHasArrayIndexes(node)
+      code = "with($arrayPointers) { #{code} }" if nodeArrayIndexes(node)
       code = "with($registry) { #{code} }" if requiresRegistry(args)
       try
         new Function(args, "with($context) { #{code} }")
@@ -251,14 +250,12 @@
 
   requiresRegistry = (args) -> /\$registry/.test(args)
 
-  nodeHasArrayIndexes = (node) ->
-    return unless node.bindingId?
-    !!elements[node.bindingId]?.indexes?
+  nodeArrayIndexes = (node) ->
+    node.bindingId? && elements[node.bindingId]?.indexes
 
   arrayPointersForNode = (node, context) ->
-    return {} unless node.bindingId?
-    indexes = elements[node.bindingId]?.indexes
-    return {} unless indexes?
+    indexes = nodeArrayIndexes(node)
+    return {} unless indexes
 
     result = {}
     for key, index of indexes
@@ -266,7 +263,7 @@
     result
 
   isKeypath = (value) ->
-    value not in ['true', 'false', 'null', 'undefined'] and keypathRegex.test(value)
+    value not in ['true', 'false', 'null', 'undefined'] && keypathRegex.test(value)
 
   fireCustomChangeEvent = (node) ->
     event = document.createEvent('CustomEvent')
