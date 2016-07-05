@@ -372,7 +372,7 @@ suite "Twine", ->
       testView = "<div data-define=\"{key: 'value', key2: 'value2\"></div>"
       assert.throw ->
         setupView(testView, context = {})
-      , 'Twine error: Unable to create function on DIV node with attributes data-define=\'{key: \'value\', key2: \'value2\''
+      , 'Twine error: Unable to create function on DIV node with attributes data-define="{key: \'value\', key2: \'value2"'
 
   suite 'data-define-array attribute', ->
     test 'should mix in the given keys into an array', ->
@@ -566,7 +566,7 @@ suite "Twine", ->
 
       assert.throw ->
         setupView(testView, context = {})
-      , "Twine error: Unable to create function on SPAN node with attributes data-eval='myArray.push(\"stuff)'"
+      , 'Twine error: Unable to create function on SPAN node with attributes data-eval="myArray.push(\\"stuff)"'
 
   suite "data-allow-default", ->
     test "should prevent default action for an anchor tag", ->
@@ -1195,7 +1195,7 @@ suite "TwineLegacy", ->
       testView = "<div define=\"{key: 'value', key2: 'value2\"></div>"
       assert.throw ->
         setupView(testView, context = {})
-      , 'Twine error: Unable to create function on DIV node with attributes define=\'{key: \'value\', key2: \'value2\''
+      , 'Twine error: Unable to create function on DIV node with attributes define="{key: \'value\', key2: \'value2"'
 
   suite "eval attribute", ->
     test "should call the given code", ->
@@ -1224,7 +1224,7 @@ suite "TwineLegacy", ->
 
       assert.throw ->
         setupView(testView, context = {})
-      , "Twine error: Unable to create function on SPAN node with attributes eval='myArray.push(\"stuff)'"
+      , 'Twine error: Unable to create function on SPAN node with attributes eval="myArray.push(\\"stuff)"'
 
   suite "allow-default", ->
     test "should prevent default action for an anchor tag", ->

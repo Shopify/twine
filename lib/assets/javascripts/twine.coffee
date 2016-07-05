@@ -232,14 +232,7 @@
     object[lastKey] = value
 
   stringifyNodeAttributes = (node) ->
-    nAttributes = node.attributes.length
-    i = 0
-    result = ""
-    while i < nAttributes
-      attr = node.attributes.item(i)
-      result += "#{attr.nodeName}='#{attr.textContent}'"
-      i+=1
-    result
+    [].map.call(node.attributes, (attr) -> "#{attr.name}=#{JSON.stringify(attr.value)}").join(' ')
 
   wrapFunctionString = (code, args, node) ->
     if isKeypath(code) && keypath = keypathForKey(node, code)

@@ -10,7 +10,7 @@
       return root.Twine = factory();
     }
   })(this, function() {
-    var Twine, arrayPointersForNode, attribute, bind, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeCount, nodeHasArrayIndexes, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupAttributeBinding, setupEventBinding, stringifyNodeAttributes, valueAttributeForNode, wrapFunctionString;
+    var Twine, arrayPointersForNode, attribute, bind, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeCount, nodeHasArrayIndexes, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
     Twine = {};
     Twine.shouldDiscardEvent = {};
     elements = {};
@@ -268,7 +268,7 @@
       }
       return keys.join('.');
     };
-    valueAttributeForNode = function(node) {
+    valuePropertyForNode = function(node) {
       var name, ref;
       name = node.nodeName.toLowerCase();
       if (name === 'input' || name === 'textarea' || name === 'select') {
@@ -337,16 +337,9 @@
       return object[lastKey] = value;
     };
     stringifyNodeAttributes = function(node) {
-      var attr, i, nAttributes, result;
-      nAttributes = node.attributes.length;
-      i = 0;
-      result = "";
-      while (i < nAttributes) {
-        attr = node.attributes.item(i);
-        result += attr.nodeName + "='" + attr.textContent + "'";
-        i += 1;
-      }
-      return result;
+      return [].map.call(node.attributes, function(attr) {
+        return attr.name + "=" + (JSON.stringify(attr.value));
+      }).join(' ');
     };
     wrapFunctionString = function(code, args, node) {
       var e, error, keypath;
@@ -413,9 +406,9 @@
     };
     Twine.bindingTypes = {
       bind: function(node, context, definition) {
-        var changeHandler, checkedValueType, fn, keypath, lastValue, oldValue, refresh, refreshContext, teardown, twoWayBinding, value, valueAttribute;
-        valueAttribute = valueAttributeForNode(node);
-        value = node[valueAttribute];
+        var changeHandler, checkedValueType, fn, keypath, lastValue, oldValue, refresh, refreshContext, teardown, twoWayBinding, value, valueProp;
+        valueProp = valuePropertyForNode(node);
+        value = node[valueProp];
         lastValue = void 0;
         teardown = void 0;
         checkedValueType = node.getAttribute('type') === 'radio';
@@ -427,10 +420,10 @@
             return;
           }
           lastValue = newValue;
-          if (newValue === node[valueAttribute]) {
+          if (newValue === node[valueProp]) {
             return;
           }
-          node[valueAttribute] = checkedValueType ? newValue === node.value : newValue;
+          node[valueProp] = checkedValueType ? newValue === node.value : newValue;
           return fireCustomChangeEvent(node);
         };
         if (!isKeypath(definition)) {
@@ -445,11 +438,11 @@
             }
             return setValue(context, keypath, node.value);
           } else {
-            return setValue(context, keypath, node[valueAttribute]);
+            return setValue(context, keypath, node[valueProp]);
           }
         };
         keypath = keypathForKey(node, definition);
-        twoWayBinding = valueAttribute !== 'textContent' && node.type !== 'hidden';
+        twoWayBinding = valueProp !== 'textContent' && node.type !== 'hidden';
         if (keypath[0] === '$root') {
           context = rootContext;
           keypath = keypath.slice(1);
@@ -459,7 +452,7 @@
         }
         if (twoWayBinding) {
           changeHandler = function() {
-            if (getValue(context, keypath) === this[valueAttribute]) {
+            if (getValue(context, keypath) === this[valueProp]) {
               return;
             }
             refreshContext();
@@ -559,9 +552,9 @@
       }
       return indexes;
     };
-    setupAttributeBinding = function(attributeName, bindingName) {
-      var booleanAttribute;
-      booleanAttribute = attributeName === 'checked' || attributeName === 'indeterminate' || attributeName === 'disabled' || attributeName === 'readOnly';
+    setupPropertyBinding = function(attributeName, bindingName) {
+      var booleanProp;
+      booleanProp = attributeName === 'checked' || attributeName === 'indeterminate' || attributeName === 'disabled' || attributeName === 'readOnly';
       return Twine.bindingTypes["bind-" + bindingName] = function(node, context, definition) {
         var fn, lastValue;
         fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
@@ -570,7 +563,7 @@
           refresh: function() {
             var newValue;
             newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context));
-            if (booleanAttribute) {
+            if (booleanProp) {
               newValue = !!newValue;
             }
             if (newValue === lastValue) {
@@ -587,9 +580,9 @@
     ref = ['placeholder', 'checked', 'indeterminate', 'disabled', 'href', 'title', 'readOnly', 'src'];
     for (j = 0, len = ref.length; j < len; j++) {
       attribute = ref[j];
-      setupAttributeBinding(attribute, attribute);
+      setupPropertyBinding(attribute, attribute);
     }
-    setupAttributeBinding('innerHTML', 'unsafe-html');
+    setupPropertyBinding('innerHTML', 'unsafe-html');
     preventDefaultForEvent = function(event) {
       var ref1;
       return (event.type === 'submit' || event.currentTarget.nodeName.toLowerCase() === 'a') && ((ref1 = Twine.getAttribute(event.currentTarget, 'allow-default')) === 'false' || ref1 === false || ref1 === 0 || ref1 === (void 0) || ref1 === null);
