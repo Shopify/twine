@@ -3,6 +3,7 @@ PATH
   specs:
     twine-rails (1.0.0)
       coffee-rails
+      railties
 
 GEM
   remote: https://rubygems.org/
