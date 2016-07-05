@@ -69,11 +69,16 @@
       element = findOrCreateElementForNode(node)
       element.indexes = indexes
 
-    for type, binding of Twine.bindingTypes when definition = Twine.getAttribute(node, type)
-      element = findOrCreateElementForNode(node)
-      element.bindings ?= []
-      element.indexes ?= indexes
+    element = findOrCreateElementForNode(node)
+    element.bindings ?= []
+    element.indexes ?= indexes
+    Array.from(node.attributes).forEach (attribute) ->
+      type = attribute.name
+      type = type.slice(5) if type.startsWith('data-')
+      definition = attribute.value
 
+      binding = Twine.bindingTypes[type]
+      return unless binding
       fn = binding(node, context, definition, element)
       element.bindings.push(fn) if fn
 
