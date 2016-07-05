@@ -74,7 +74,7 @@
     element.indexes ?= indexes
     Array.prototype.slice.call(node.attributes).forEach (attribute) ->
       type = attribute.name
-      type = type.slice(5) if type.startsWith('data-')
+      type = type.slice(5) if type.slice(0, 5) == 'data-'
       definition = attribute.value
 
       binding = Twine.bindingTypes[type]
