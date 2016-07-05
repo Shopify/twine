@@ -108,7 +108,6 @@
   findOrCreateElementForNode = (node) ->
     node.bindingId ?= ++nodeCount
     elements[node.bindingId] ?= {}
-    elements[node.bindingId]
 
   # Queues a refresh of the DOM, batching up calls for the current synchronous block.
   Twine.refresh = ->
@@ -187,7 +186,7 @@
     addKey(rootContext) if node == rootNode
     keys.join('.')
 
-  valueAttributeForNode = (node) ->
+  valuePropertyForNode = (node) ->
     name = node.nodeName.toLowerCase()
     if name in ['input', 'textarea', 'select']
       if node.getAttribute('type') in ['checkbox', 'radio'] then 'checked' else 'value'
@@ -232,14 +231,7 @@
     object[lastKey] = value
 
   stringifyNodeAttributes = (node) ->
-    nAttributes = node.attributes.length
-    i = 0
-    result = ""
-    while i < nAttributes
-      attr = node.attributes.item(i)
-      result += "#{attr.nodeName}='#{attr.textContent}'"
-      i+=1
-    result
+    [].map.call(node.attributes, (attr) -> "#{attr.name}=#{JSON.stringify(attr.value)}").join(' ')
 
   wrapFunctionString = (code, args, node) ->
     if isKeypath(code) && keypath = keypathForKey(node, code)
@@ -249,7 +241,7 @@
         ($context, $root) -> getValue($context, keypath)
     else
       code = "return #{code}"
-      code = "with($arrayPointers) { #{code} }" if nodeHasArrayIndexes(node)
+      code = "with($arrayPointers) { #{code} }" if nodeArrayIndexes(node)
       code = "with($registry) { #{code} }" if requiresRegistry(args)
       try
         new Function(args, "with($context) { #{code} }")
@@ -258,14 +250,12 @@
 
   requiresRegistry = (args) -> /\$registry/.test(args)
 
-  nodeHasArrayIndexes = (node) ->
-    return unless node.bindingId?
-    !!elements[node.bindingId]?.indexes?
+  nodeArrayIndexes = (node) ->
+    node.bindingId? && elements[node.bindingId]?.indexes
 
   arrayPointersForNode = (node, context) ->
-    return {} unless node.bindingId?
-    indexes = elements[node.bindingId]?.indexes
-    return {} unless indexes?
+    indexes = nodeArrayIndexes(node)
+    return {} unless indexes
 
     result = {}
     for key, index of indexes
@@ -273,7 +263,7 @@
     result
 
   isKeypath = (value) ->
-    value not in ['true', 'false', 'null', 'undefined'] and keypathRegex.test(value)
+    value not in ['true', 'false', 'null', 'undefined'] && keypathRegex.test(value)
 
   fireCustomChangeEvent = (node) ->
     event = document.createEvent('CustomEvent')
@@ -282,8 +272,8 @@
 
   Twine.bindingTypes =
     bind: (node, context, definition) ->
-      valueAttribute = valueAttributeForNode(node)
-      value = node[valueAttribute]
+      valueProp = valuePropertyForNode(node)
+      value = node[valueProp]
       lastValue = undefined
       teardown = undefined
 
@@ -296,9 +286,9 @@
         return if newValue == lastValue # return if we can and avoid a DOM operation
 
         lastValue = newValue
-        return if newValue == node[valueAttribute]
+        return if newValue == node[valueProp]
 
-        node[valueAttribute] = if checkedValueType then newValue == node.value else newValue
+        node[valueProp] = if checkedValueType then newValue == node.value else newValue
         fireCustomChangeEvent(node)
 
       return {refresh} unless isKeypath(definition)
@@ -308,10 +298,10 @@
           return unless node.checked
           setValue(context, keypath, node.value)
         else
-          setValue(context, keypath, node[valueAttribute])
+          setValue(context, keypath, node[valueProp])
 
       keypath = keypathForKey(node, definition)
-      twoWayBinding = valueAttribute != 'textContent' && node.type != 'hidden'
+      twoWayBinding = valueProp != 'textContent' && node.type != 'hidden'
 
       if keypath[0] == '$root'
         context = rootContext
@@ -322,7 +312,7 @@
 
       if twoWayBinding
         changeHandler = ->
-          return if getValue(context, keypath) == this[valueAttribute]
+          return if getValue(context, keypath) == this[valueProp]
           refreshContext()
           Twine.refreshImmediately()
         $(node).on 'input keyup change', changeHandler
@@ -383,24 +373,24 @@
 
     indexes
 
-  setupAttributeBinding = (attributeName, bindingName) ->
-    booleanAttribute = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly']
+  setupPropertyBinding = (attributeName, bindingName) ->
+    booleanProp = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly']
 
     Twine.bindingTypes["bind-#{bindingName}"] = (node, context, definition) ->
       fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
       lastValue = undefined
       return refresh: ->
         newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
-        newValue = !!newValue if booleanAttribute
+        newValue = !!newValue if booleanProp
         return if newValue == lastValue
         node[attributeName] = lastValue = newValue
 
         fireCustomChangeEvent(node) if attributeName == 'checked'
 
   for attribute in ['placeholder', 'checked', 'indeterminate', 'disabled', 'href', 'title', 'readOnly', 'src']
-    setupAttributeBinding(attribute, attribute)
+    setupPropertyBinding(attribute, attribute)
 
-  setupAttributeBinding('innerHTML', 'unsafe-html')
+  setupPropertyBinding('innerHTML', 'unsafe-html')
 
   preventDefaultForEvent = (event) ->
     (event.type == 'submit' || event.currentTarget.nodeName.toLowerCase() == 'a') &&
