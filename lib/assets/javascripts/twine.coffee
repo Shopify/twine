@@ -381,7 +381,7 @@
   setupPropertyBinding = (attributeName, bindingName) ->
     booleanProp = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly']
 
-    Twine.bindingTypes["bind-#{bindingName}"] = (node, context, definition) ->
+    Twine.bindingTypes["bind-#{bindingName.toLowerCase()}"] = (node, context, definition) ->
       fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
       lastValue = undefined
       return refresh: ->

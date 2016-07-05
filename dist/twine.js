@@ -62,7 +62,7 @@
       }
     };
     bind = function(context, node, indexes, forceSaveContext) {
-      var binding, callback, callbacks, childNode, defineArrayAttr, definition, element, fn, j, k, key, keypath, len, len1, newContextKey, newIndexes, ref, ref1, ref2, type, value;
+      var callback, callbacks, childNode, defineArrayAttr, element, j, k, key, keypath, len, len1, newContextKey, newIndexes, ref, ref1, value;
       currentBindingCallbacks = [];
       if (node.bindingId) {
         Twine.unbind(node);
@@ -82,24 +82,29 @@
         element = findOrCreateElementForNode(node);
         element.indexes = indexes;
       }
-      ref = Twine.bindingTypes;
-      for (type in ref) {
-        binding = ref[type];
-        if (!(definition = Twine.getAttribute(node, type))) {
-          continue;
+      element = findOrCreateElementForNode(node);
+      if (element.bindings == null) {
+        element.bindings = [];
+      }
+      if (element.indexes == null) {
+        element.indexes = indexes;
+      }
+      Array.prototype.slice.call(node.attributes).forEach(function(attribute) {
+        var binding, definition, fn, type;
+        type = attribute.name;
+        if (type.slice(0, 5) === 'data-') {
+          type = type.slice(5);
         }
-        element = findOrCreateElementForNode(node);
-        if (element.bindings == null) {
-          element.bindings = [];
-        }
-        if (element.indexes == null) {
-          element.indexes = indexes;
+        definition = attribute.value;
+        binding = Twine.bindingTypes[type];
+        if (!binding) {
+          return;
         }
         fn = binding(node, context, definition, element);
         if (fn) {
-          element.bindings.push(fn);
+          return element.bindings.push(fn);
         }
-      }
+      });
       if (newContextKey = Twine.getAttribute(node, 'context')) {
         keypath = keypathForKey(node, newContextKey);
         if (keypath[0] === '$root') {
@@ -118,15 +123,15 @@
         }
       }
       callbacks = currentBindingCallbacks;
-      ref1 = node.children || [];
-      for (j = 0, len = ref1.length; j < len; j++) {
-        childNode = ref1[j];
+      ref = node.children || [];
+      for (j = 0, len = ref.length; j < len; j++) {
+        childNode = ref[j];
         bind(context, childNode, newContextKey != null ? null : indexes);
       }
       Twine.count = nodeCount;
-      ref2 = callbacks || [];
-      for (k = 0, len1 = ref2.length; k < len1; k++) {
-        callback = ref2[k];
+      ref1 = callbacks || [];
+      for (k = 0, len1 = ref1.length; k < len1; k++) {
+        callback = ref1[k];
         callback();
       }
       currentBindingCallbacks = null;
