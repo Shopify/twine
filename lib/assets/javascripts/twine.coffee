@@ -56,6 +56,7 @@
 
   bind = (context, node, indexes, forceSaveContext) ->
     currentBindingCallbacks = []
+    element = null
     if node.bindingId
       Twine.unbind(node)
 
@@ -69,18 +70,29 @@
       element = findOrCreateElementForNode(node)
       element.indexes = indexes
 
-    element = findOrCreateElementForNode(node)
-    element.bindings ?= []
-    element.indexes ?= indexes
-    Array.prototype.slice.call(node.attributes).forEach (attribute) ->
+    bindingConstructors = null
+    for attribute in node.attributes
       type = attribute.name
       type = type.slice(5) if type.slice(0, 5) == 'data-'
       definition = attribute.value
 
-      binding = Twine.bindingTypes[type]
-      return unless binding
-      fn = binding(node, context, definition, element)
-      element.bindings.push(fn) if fn
+      constructor = Twine.bindingTypes[type]
+      continue unless constructor
+
+      bindingConstructors ?= []
+      if type == 'bind'
+        bindingConstructors.unshift({constructor, definition})
+      else
+        bindingConstructors.push({constructor, definition})
+
+    if bindingConstructors
+      element ?= findOrCreateElementForNode(node)
+      element.bindings ?= []
+      element.indexes ?= indexes
+
+      for {constructor, definition} in bindingConstructors
+        binding = constructor(node, context, definition, element)
+        element.bindings.push(binding) if binding
 
     if newContextKey = Twine.getAttribute(node, 'context')
       keypath = keypathForKey(node, newContextKey)
@@ -90,7 +102,7 @@
       context = getValue(context, keypath) || setValue(context, keypath, {})
 
     if element || newContextKey || forceSaveContext
-      element = findOrCreateElementForNode(node)
+      element ?= findOrCreateElementForNode(node)
       element.childContext = context
       element.indexes ?= indexes if indexes?
 

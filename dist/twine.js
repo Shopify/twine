@@ -62,8 +62,9 @@
       }
     };
     bind = function(context, node, indexes, forceSaveContext) {
-      var callback, callbacks, childNode, defineArrayAttr, element, j, k, key, keypath, len, len1, newContextKey, newIndexes, ref, ref1, value;
+      var attribute, binding, bindingConstructors, callback, callbacks, childNode, constructor, defineArrayAttr, definition, element, j, k, key, keypath, l, len, len1, len2, len3, m, newContextKey, newIndexes, ref, ref1, ref2, ref3, type, value;
       currentBindingCallbacks = [];
+      element = null;
       if (node.bindingId) {
         Twine.unbind(node);
       }
@@ -82,29 +83,52 @@
         element = findOrCreateElementForNode(node);
         element.indexes = indexes;
       }
-      element = findOrCreateElementForNode(node);
-      if (element.bindings == null) {
-        element.bindings = [];
-      }
-      if (element.indexes == null) {
-        element.indexes = indexes;
-      }
-      Array.prototype.slice.call(node.attributes).forEach(function(attribute) {
-        var binding, definition, fn, type;
+      bindingConstructors = null;
+      ref = node.attributes;
+      for (j = 0, len = ref.length; j < len; j++) {
+        attribute = ref[j];
         type = attribute.name;
         if (type.slice(0, 5) === 'data-') {
           type = type.slice(5);
         }
         definition = attribute.value;
-        binding = Twine.bindingTypes[type];
-        if (!binding) {
-          return;
+        constructor = Twine.bindingTypes[type];
+        if (!constructor) {
+          continue;
         }
-        fn = binding(node, context, definition, element);
-        if (fn) {
-          return element.bindings.push(fn);
+        if (bindingConstructors == null) {
+          bindingConstructors = [];
         }
-      });
+        if (type === 'bind') {
+          bindingConstructors.unshift({
+            constructor: constructor,
+            definition: definition
+          });
+        } else {
+          bindingConstructors.push({
+            constructor: constructor,
+            definition: definition
+          });
+        }
+      }
+      if (bindingConstructors) {
+        if (element == null) {
+          element = findOrCreateElementForNode(node);
+        }
+        if (element.bindings == null) {
+          element.bindings = [];
+        }
+        if (element.indexes == null) {
+          element.indexes = indexes;
+        }
+        for (k = 0, len1 = bindingConstructors.length; k < len1; k++) {
+          ref1 = bindingConstructors[k], constructor = ref1.constructor, definition = ref1.definition;
+          binding = constructor(node, context, definition, element);
+          if (binding) {
+            element.bindings.push(binding);
+          }
+        }
+      }
       if (newContextKey = Twine.getAttribute(node, 'context')) {
         keypath = keypathForKey(node, newContextKey);
         if (keypath[0] === '$root') {
@@ -114,7 +138,9 @@
         context = getValue(context, keypath) || setValue(context, keypath, {});
       }
       if (element || newContextKey || forceSaveContext) {
-        element = findOrCreateElementForNode(node);
+        if (element == null) {
+          element = findOrCreateElementForNode(node);
+        }
         element.childContext = context;
         if (indexes != null) {
           if (element.indexes == null) {
@@ -123,15 +149,15 @@
         }
       }
       callbacks = currentBindingCallbacks;
-      ref = node.children || [];
-      for (j = 0, len = ref.length; j < len; j++) {
-        childNode = ref[j];
+      ref2 = node.children || [];
+      for (l = 0, len2 = ref2.length; l < len2; l++) {
+        childNode = ref2[l];
         bind(context, childNode, newContextKey != null ? null : indexes);
       }
       Twine.count = nodeCount;
-      ref1 = callbacks || [];
-      for (k = 0, len1 = ref1.length; k < len1; k++) {
-        callback = ref1[k];
+      ref3 = callbacks || [];
+      for (m = 0, len3 = ref3.length; m < len3; m++) {
+        callback = ref3[m];
         callback();
       }
       currentBindingCallbacks = null;
@@ -551,7 +577,7 @@
     setupPropertyBinding = function(attributeName, bindingName) {
       var booleanProp;
       booleanProp = attributeName === 'checked' || attributeName === 'indeterminate' || attributeName === 'disabled' || attributeName === 'readOnly';
-      return Twine.bindingTypes["bind-" + bindingName] = function(node, context, definition) {
+      return Twine.bindingTypes["bind-" + (bindingName.toLowerCase())] = function(node, context, definition) {
         var fn, lastValue;
         fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
         lastValue = void 0;
