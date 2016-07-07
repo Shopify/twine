@@ -166,10 +166,11 @@ suite "Twine", ->
 
     test "should be the first binding to run on change event", ->
       testView = "<input type=\"text\" bind-event-change=\"eventFunc()\" data-bind=\"val\">"
-      node = setupView(testView, context = {
+      context = {
         val: 1,
         eventFunc: () -> this.val = this.val * 2
-      })
+      }
+      node = setupView(testView, context)
       node.value = 2
       triggerEvent node, "change"
 
