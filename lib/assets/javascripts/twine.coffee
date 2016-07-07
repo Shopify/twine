@@ -283,7 +283,11 @@
     value not in ['true', 'false', 'null', 'undefined'] && keypathRegex.test(value)
 
   isDataAttribute = (value) ->
-    value[0] == 'd' && value[1] == 'a' && value[2] == 't' && value[3] == 'a' && value[4] == '-'
+    value[0] == 'd' &&
+    value[1] == 'a' &&
+    value[2] == 't' &&
+    value[3] == 'a' &&
+    value[4] == '-'
 
   fireCustomChangeEvent = (node) ->
     event = document.createEvent('CustomEvent')
