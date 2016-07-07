@@ -164,6 +164,28 @@ suite "Twine", ->
       node = setupView(testView, key: "<script>")
       assert.equal node.innerHTML, "&lt;script&gt;"
 
+    test "should be the first binding to run on change event", ->
+      testView = "<input type=\"text\" bind-event-change=\"eventFunc()\" data-bind=\"val\">"
+      node = setupView(testView, context = {
+        val: 1,
+        eventFunc: () -> this.val = this.val * 2
+      })
+      node.value = 2
+      triggerEvent node, "change"
+
+      assert.equal context.val, 4
+
+    # test "should be the first binding to run on input event", ->
+    #   testView = "<input type=\"text\" bind-event-input=\"eventFunc()\" data-bind=\"bindFunc()\">"
+    #   node = setupView(testView, context = {
+    #     eventFunc: @spy(),
+    #     bindFunc: @spy()
+    #   })
+    #   context.eventFunc.reset()
+    #   context.bindFunc.reset()
+    #   triggerEvent node, "input"
+    #   sinon.assert.callOrder context.bindFunc, context.eventFunc
+
   suite "data-bind-show attribute", ->
     test "should apply the \"hide\" class when falsy", ->
       testView = "<div data-bind-show=\"key\"></div>"
