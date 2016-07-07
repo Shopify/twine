@@ -10,7 +10,7 @@
       return root.Twine = factory();
     }
   })(this, function() {
-    var Twine, arrayPointersForNode, attribute, bind, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
+    var Twine, arrayPointersForNode, attribute, bind, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
     Twine = {};
     Twine.shouldDiscardEvent = {};
     elements = {};
@@ -88,10 +88,9 @@
       for (j = 0, len = ref.length; j < len; j++) {
         attribute = ref[j];
         type = attribute.name;
-        if (type.slice(0, 5) === 'data-') {
+        if (isDataAttribute(type)) {
           type = type.slice(5);
         }
-        definition = attribute.value;
         constructor = Twine.bindingTypes[type];
         if (!constructor) {
           continue;
@@ -99,16 +98,11 @@
         if (bindingConstructors == null) {
           bindingConstructors = [];
         }
+        definition = attribute.value;
         if (type === 'bind') {
-          bindingConstructors.unshift({
-            constructor: constructor,
-            definition: definition
-          });
+          bindingConstructors.unshift([constructor, definition]);
         } else {
-          bindingConstructors.push({
-            constructor: constructor,
-            definition: definition
-          });
+          bindingConstructors.push([constructor, definition]);
         }
       }
       if (bindingConstructors) {
@@ -122,7 +116,7 @@
           element.indexes = indexes;
         }
         for (k = 0, len1 = bindingConstructors.length; k < len1; k++) {
-          ref1 = bindingConstructors[k], constructor = ref1.constructor, definition = ref1.definition;
+          ref1 = bindingConstructors[k], constructor = ref1[0], definition = ref1[1];
           binding = constructor(node, context, definition, element);
           if (binding) {
             element.bindings.push(binding);
@@ -419,6 +413,9 @@
     };
     isKeypath = function(value) {
       return (value !== 'true' && value !== 'false' && value !== 'null' && value !== 'undefined') && keypathRegex.test(value);
+    };
+    isDataAttribute = function(value) {
+      return value[0] === 'd' && value[1] === 'a' && value[2] === 't' && value[3] === 'a' && value[4] === '-';
     };
     fireCustomChangeEvent = function(node) {
       var event;

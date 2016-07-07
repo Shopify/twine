@@ -73,24 +73,24 @@
     bindingConstructors = null
     for attribute in node.attributes
       type = attribute.name
-      type = type.slice(5) if type.slice(0, 5) == 'data-'
-      definition = attribute.value
+      type = type.slice(5) if isDataAttribute(type)
 
       constructor = Twine.bindingTypes[type]
       continue unless constructor
 
       bindingConstructors ?= []
+      definition = attribute.value
       if type == 'bind'
-        bindingConstructors.unshift({constructor, definition})
+        bindingConstructors.unshift([constructor, definition])
       else
-        bindingConstructors.push({constructor, definition})
+        bindingConstructors.push([constructor, definition])
 
     if bindingConstructors
       element ?= findOrCreateElementForNode(node)
       element.bindings ?= []
       element.indexes ?= indexes
 
-      for {constructor, definition} in bindingConstructors
+      for [constructor, definition] in bindingConstructors
         binding = constructor(node, context, definition, element)
         element.bindings.push(binding) if binding
 
@@ -281,6 +281,9 @@
 
   isKeypath = (value) ->
     value not in ['true', 'false', 'null', 'undefined'] && keypathRegex.test(value)
+
+  isDataAttribute = (value) ->
+    value[0] == 'd' && value[1] == 'a' && value[2] == 't' && value[3] == 'a' && value[4] == '-'
 
   fireCustomChangeEvent = (node) ->
     event = document.createEvent('CustomEvent')
