@@ -171,7 +171,8 @@ suite "Twine", ->
       }
       bindGetter = @spy()
       Object.defineProperty(context, 'val', {
-        get: bindGetter
+        get: bindGetter,
+        set: @spy()
       })
       node = setupView(testView, context)
       context.eventFunc.reset()
@@ -187,7 +188,8 @@ suite "Twine", ->
       }
       bindGetter = @spy()
       Object.defineProperty(context, 'val', {
-        get: bindGetter
+        get: bindGetter,
+        set: @spy()
       })
       node = setupView(testView, context)
       context.eventFunc.reset()
@@ -203,7 +205,8 @@ suite "Twine", ->
       }
       bindGetter = @spy()
       Object.defineProperty(context, 'val', {
-        get: bindGetter
+        get: bindGetter,
+        set: @spy()
       })
       node = setupView(testView, context)
       context.eventFunc.reset()
