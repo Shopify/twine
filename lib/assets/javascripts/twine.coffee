@@ -56,6 +56,7 @@
 
   bind = (context, node, indexes, forceSaveContext) ->
     currentBindingCallbacks = []
+    element = null
     if node.bindingId
       Twine.unbind(node)
 
@@ -69,13 +70,29 @@
       element = findOrCreateElementForNode(node)
       element.indexes = indexes
 
-    for type, binding of Twine.bindingTypes when definition = Twine.getAttribute(node, type)
-      element = findOrCreateElementForNode(node)
+    bindingConstructors = null
+    for attribute in node.attributes
+      type = attribute.name
+      type = type.slice(5) if isDataAttribute(type)
+
+      constructor = Twine.bindingTypes[type]
+      continue unless constructor
+
+      bindingConstructors ?= []
+      definition = attribute.value
+      if type == 'bind'
+        bindingConstructors.unshift([constructor, definition])
+      else
+        bindingConstructors.push([constructor, definition])
+
+    if bindingConstructors
+      element ?= findOrCreateElementForNode(node)
       element.bindings ?= []
       element.indexes ?= indexes
 
-      fn = binding(node, context, definition, element)
-      element.bindings.push(fn) if fn
+      for [constructor, definition] in bindingConstructors
+        binding = constructor(node, context, definition, element)
+        element.bindings.push(binding) if binding
 
     if newContextKey = Twine.getAttribute(node, 'context')
       keypath = keypathForKey(node, newContextKey)
@@ -85,7 +102,7 @@
       context = getValue(context, keypath) || setValue(context, keypath, {})
 
     if element || newContextKey || forceSaveContext
-      element = findOrCreateElementForNode(node)
+      element ?= findOrCreateElementForNode(node)
       element.childContext = context
       element.indexes ?= indexes if indexes?
 
@@ -265,6 +282,13 @@
   isKeypath = (value) ->
     value not in ['true', 'false', 'null', 'undefined'] && keypathRegex.test(value)
 
+  isDataAttribute = (value) ->
+    value[0] == 'd' &&
+    value[1] == 'a' &&
+    value[2] == 't' &&
+    value[3] == 'a' &&
+    value[4] == '-'
+
   fireCustomChangeEvent = (node) ->
     event = document.createEvent('CustomEvent')
     event.initCustomEvent('bindings:change', true, false, {})
@@ -376,7 +400,7 @@
   setupPropertyBinding = (attributeName, bindingName) ->
     booleanProp = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly']
 
-    Twine.bindingTypes["bind-#{bindingName}"] = (node, context, definition) ->
+    Twine.bindingTypes["bind-#{bindingName.toLowerCase()}"] = (node, context, definition) ->
       fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
       lastValue = undefined
       return refresh: ->

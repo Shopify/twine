@@ -164,6 +164,57 @@ suite "Twine", ->
       node = setupView(testView, key: "<script>")
       assert.equal node.innerHTML, "&lt;script&gt;"
 
+    test "should be the first binding to run on input event", ->
+      testView = "<input type=\"text\" bind-event-input=\"eventFunc()\" data-bind=\"val\">"
+      context = {
+        eventFunc: @spy(),
+      }
+      bindGetter = @spy()
+      Object.defineProperty(context, 'val', {
+        get: bindGetter,
+        set: @spy()
+      })
+      node = setupView(testView, context)
+      context.eventFunc.reset()
+      bindGetter.reset()
+
+      triggerEvent node, "input"
+      sinon.assert.callOrder bindGetter, context.eventFunc
+
+    test "should be the first binding to run on keyup event", ->
+      testView = "<input type=\"text\" bind-event-keyup=\"eventFunc()\" data-bind=\"val\">"
+      context = {
+        eventFunc: @spy(),
+      }
+      bindGetter = @spy()
+      Object.defineProperty(context, 'val', {
+        get: bindGetter,
+        set: @spy()
+      })
+      node = setupView(testView, context)
+      context.eventFunc.reset()
+      bindGetter.reset()
+
+      triggerEvent node, "keyup"
+      sinon.assert.callOrder bindGetter, context.eventFunc
+
+    test "should be the first binding to run on change event", ->
+      testView = "<input type=\"text\" bind-event-change=\"eventFunc()\" data-bind=\"val\">"
+      context = {
+        eventFunc: @spy(),
+      }
+      bindGetter = @spy()
+      Object.defineProperty(context, 'val', {
+        get: bindGetter,
+        set: @spy()
+      })
+      node = setupView(testView, context)
+      context.eventFunc.reset()
+      bindGetter.reset()
+
+      triggerEvent node, "change"
+      sinon.assert.callOrder bindGetter, context.eventFunc
+
   suite "data-bind-show attribute", ->
     test "should apply the \"hide\" class when falsy", ->
       testView = "<div data-bind-show=\"key\"></div>"
