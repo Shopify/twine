@@ -99,7 +99,7 @@
           bindingConstructors = [];
         }
         definition = attribute.value;
-        if (type === 'bind') {
+        if (type === 'bind' || type === 'define') {
           bindingConstructors.unshift([constructor, definition]);
         } else {
           bindingConstructors.push([constructor, definition]);
