@@ -70,6 +70,11 @@
       element = findOrCreateElementForNode(node)
       element.indexes = indexes
 
+    ORDERED_BINDINGS = [
+      'define',
+      'bind'
+    ]
+
     bindingConstructors = null
     for attribute in node.attributes
       type = attribute.name
@@ -78,19 +83,24 @@
       constructor = Twine.bindingTypes[type]
       continue unless constructor
 
-      bindingConstructors ?= []
+      bindingConstructors ?= {others: []}
       definition = attribute.value
-      if type == 'bind' || type == 'define'
-        bindingConstructors.unshift([constructor, definition])
+      if type in ORDERED_BINDINGS
+        bindingConstructors[type] = [constructor, definition]
       else
-        bindingConstructors.push([constructor, definition])
+        bindingConstructors.others.push([constructor, definition])
 
     if bindingConstructors
       element ?= findOrCreateElementForNode(node)
       element.bindings ?= []
       element.indexes ?= indexes
 
-      for [constructor, definition] in bindingConstructors
+      for type in ORDERED_BINDINGS when bindingConstructors[type]?
+        [constructor, definition] = bindingConstructors[type]
+        binding = constructor(node, context, definition, element)
+        element.bindings.push(binding) if binding
+
+      for [constructor, definition] in bindingConstructors.others
         binding = constructor(node, context, definition, element)
         element.bindings.push(binding) if binding
 

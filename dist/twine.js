@@ -1,5 +1,6 @@
 (function() {
-  var slice = [].slice;
+  var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
+    slice = [].slice;
 
   (function(root, factory) {
     if (typeof root.define === 'function' && root.define.amd) {
@@ -62,7 +63,7 @@
       }
     };
     bind = function(context, node, indexes, forceSaveContext) {
-      var attribute, binding, bindingConstructors, callback, callbacks, childNode, constructor, defineArrayAttr, definition, element, j, k, key, keypath, l, len, len1, len2, len3, m, newContextKey, newIndexes, ref, ref1, ref2, ref3, type, value;
+      var ORDERED_BINDINGS, attribute, binding, bindingConstructors, callback, callbacks, childNode, constructor, defineArrayAttr, definition, element, j, k, key, keypath, l, len, len1, len2, len3, len4, m, n, newContextKey, newIndexes, ref, ref1, ref2, ref3, ref4, ref5, type, value;
       currentBindingCallbacks = [];
       element = null;
       if (node.bindingId) {
@@ -83,6 +84,7 @@
         element = findOrCreateElementForNode(node);
         element.indexes = indexes;
       }
+      ORDERED_BINDINGS = ['define', 'bind'];
       bindingConstructors = null;
       ref = node.attributes;
       for (j = 0, len = ref.length; j < len; j++) {
@@ -96,13 +98,15 @@
           continue;
         }
         if (bindingConstructors == null) {
-          bindingConstructors = [];
+          bindingConstructors = {
+            others: []
+          };
         }
         definition = attribute.value;
-        if (type === 'bind' || type === 'define') {
-          bindingConstructors.unshift([constructor, definition]);
+        if (indexOf.call(ORDERED_BINDINGS, type) >= 0) {
+          bindingConstructors[type] = [constructor, definition];
         } else {
-          bindingConstructors.push([constructor, definition]);
+          bindingConstructors.others.push([constructor, definition]);
         }
       }
       if (bindingConstructors) {
@@ -115,8 +119,20 @@
         if (element.indexes == null) {
           element.indexes = indexes;
         }
-        for (k = 0, len1 = bindingConstructors.length; k < len1; k++) {
-          ref1 = bindingConstructors[k], constructor = ref1[0], definition = ref1[1];
+        for (k = 0, len1 = ORDERED_BINDINGS.length; k < len1; k++) {
+          type = ORDERED_BINDINGS[k];
+          if (!(bindingConstructors[type] != null)) {
+            continue;
+          }
+          ref1 = bindingConstructors[type], constructor = ref1[0], definition = ref1[1];
+          binding = constructor(node, context, definition, element);
+          if (binding) {
+            element.bindings.push(binding);
+          }
+        }
+        ref2 = bindingConstructors.others;
+        for (l = 0, len2 = ref2.length; l < len2; l++) {
+          ref3 = ref2[l], constructor = ref3[0], definition = ref3[1];
           binding = constructor(node, context, definition, element);
           if (binding) {
             element.bindings.push(binding);
@@ -143,15 +159,15 @@
         }
       }
       callbacks = currentBindingCallbacks;
-      ref2 = node.children || [];
-      for (l = 0, len2 = ref2.length; l < len2; l++) {
-        childNode = ref2[l];
+      ref4 = node.children || [];
+      for (m = 0, len3 = ref4.length; m < len3; m++) {
+        childNode = ref4[m];
         bind(context, childNode, newContextKey != null ? null : indexes);
       }
       Twine.count = nodeCount;
-      ref3 = callbacks || [];
-      for (m = 0, len3 = ref3.length; m < len3; m++) {
-        callback = ref3[m];
+      ref5 = callbacks || [];
+      for (n = 0, len4 = ref5.length; n < len4; n++) {
+        callback = ref5[n];
         callback();
       }
       currentBindingCallbacks = null;
