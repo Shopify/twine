@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    twine-rails (1.0.1)
+    twine-rails (1.0.2)
       coffee-rails
       railties
 
