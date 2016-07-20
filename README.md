@@ -171,6 +171,7 @@ Where context expects a node and `$0` is shorthand for the current node in the d
 ## Releasing
 
 1. Update version number in `package.json`, `bower.json`, and `lib/twine-rails/version.rb`
-2. Run `bundle install` to update `Gemfile.lock`
-3. Run make .all && make .uglify to update JS
+2. Run `dev up` to update `Gemfile.lock`
+3. Run `make .all && make .uglify` to update JS
 4. Push the new tag to GitHub and the new version to rubygems with `bundle exec rake release`
+5. Publish the new version to NPM with `npm publish`.
