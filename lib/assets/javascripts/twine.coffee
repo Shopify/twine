@@ -70,11 +70,6 @@
       element = findOrCreateElementForNode(node)
       element.indexes = indexes
 
-    ORDERED_BINDINGS = [
-      'define',
-      'bind'
-    ]
-
     bindingConstructors = null
     for attribute in node.attributes
       type = attribute.name
@@ -83,24 +78,16 @@
       constructor = Twine.bindingTypes[type]
       continue unless constructor
 
-      bindingConstructors ?= {others: []}
+      bindingConstructors ?= []
       definition = attribute.value
-      if type in ORDERED_BINDINGS
-        bindingConstructors[type] = [constructor, definition]
-      else
-        bindingConstructors.others.push([constructor, definition])
+      bindingConstructors.push([type, constructor, definition])
 
     if bindingConstructors
       element ?= findOrCreateElementForNode(node)
       element.bindings ?= []
       element.indexes ?= indexes
 
-      for type in ORDERED_BINDINGS when bindingConstructors[type]?
-        [constructor, definition] = bindingConstructors[type]
-        binding = constructor(node, context, definition, element)
-        element.bindings.push(binding) if binding
-
-      for [constructor, definition] in bindingConstructors.others
+      for [_, constructor, definition] in bindingConstructors.sort(bindingOrder)
         binding = constructor(node, context, definition, element)
         element.bindings.push(binding) if binding
 
@@ -303,6 +290,17 @@
     event = document.createEvent('CustomEvent')
     event.initCustomEvent('bindings:change', true, false, {})
     node.dispatchEvent(event)
+
+  bindingOrder = ([firstType], [secondType]) ->
+    ORDERED_BINDINGS = {
+      define: 1,
+      bind: 2,
+      eval: 3
+    }
+    return 1 unless ORDERED_BINDINGS[firstType]
+    return -1 unless ORDERED_BINDINGS[secondType]
+
+    ORDERED_BINDINGS[firstType] - ORDERED_BINDINGS[secondType]
 
   Twine.bindingTypes =
     bind: (node, context, definition) ->
