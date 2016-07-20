@@ -80,17 +80,14 @@
 
       bindingConstructors ?= []
       definition = attribute.value
-      if type == 'bind'
-        bindingConstructors.unshift([constructor, definition])
-      else
-        bindingConstructors.push([constructor, definition])
+      bindingConstructors.push([type, constructor, definition])
 
     if bindingConstructors
       element ?= findOrCreateElementForNode(node)
       element.bindings ?= []
       element.indexes ?= indexes
 
-      for [constructor, definition] in bindingConstructors
+      for [_, constructor, definition] in bindingConstructors.sort(bindingOrder)
         binding = constructor(node, context, definition, element)
         element.bindings.push(binding) if binding
 
@@ -293,6 +290,17 @@
     event = document.createEvent('CustomEvent')
     event.initCustomEvent('bindings:change', true, false, {})
     node.dispatchEvent(event)
+
+  bindingOrder = ([firstType], [secondType]) ->
+    ORDERED_BINDINGS = {
+      define: 1,
+      bind: 2,
+      eval: 3
+    }
+    return 1 unless ORDERED_BINDINGS[firstType]
+    return -1 unless ORDERED_BINDINGS[secondType]
+
+    ORDERED_BINDINGS[firstType] - ORDERED_BINDINGS[secondType]
 
   Twine.bindingTypes =
     bind: (node, context, definition) ->

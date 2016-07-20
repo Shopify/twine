@@ -149,6 +149,18 @@ suite "Twine", ->
       Twine.refreshImmediately()
       assert.isTrue options[2].selected
 
+    test "should work with define before bind in a two-way binding", ->
+      testView = "<input type=\"text\" data-define=\"{key: 'value'}\" data-bind=\"key\">"
+      node = setupView(testView, context = {})
+
+      assert.equal node.value, 'value'
+
+    test "should work with define after bind in a two-way binding", ->
+      testView = "<input type=\"text\" data-bind=\"key\" data-define=\"{key: 'value'}\">"
+      node = setupView(testView, context = {})
+
+      assert.equal node.value, 'value'
+
     test "should work with arbitrary javascript", ->
       testView = "<div data-bind=\"key * 2\"></div>"
       node = setupView(testView, key: 4)
@@ -165,7 +177,7 @@ suite "Twine", ->
       assert.equal node.innerHTML, "&lt;script&gt;"
 
     test "should be the first binding to run on input event", ->
-      testView = "<input type=\"text\" bind-event-input=\"eventFunc()\" data-bind=\"val\">"
+      testView = "<input type=\"text\" data-bind-event-input=\"eventFunc()\" data-bind=\"val\">"
       context = {
         eventFunc: @spy(),
       }
@@ -182,7 +194,7 @@ suite "Twine", ->
       sinon.assert.callOrder bindGetter, context.eventFunc
 
     test "should be the first binding to run on keyup event", ->
-      testView = "<input type=\"text\" bind-event-keyup=\"eventFunc()\" data-bind=\"val\">"
+      testView = "<input type=\"text\" data-bind-event-keyup=\"eventFunc()\" data-bind=\"val\">"
       context = {
         eventFunc: @spy(),
       }
@@ -199,7 +211,7 @@ suite "Twine", ->
       sinon.assert.callOrder bindGetter, context.eventFunc
 
     test "should be the first binding to run on change event", ->
-      testView = "<input type=\"text\" bind-event-change=\"eventFunc()\" data-bind=\"val\">"
+      testView = "<input type=\"text\" data-bind-event-change=\"eventFunc()\" data-bind=\"val\">"
       context = {
         eventFunc: @spy(),
       }
@@ -418,6 +430,15 @@ suite "Twine", ->
 
       assert.equal context.key, "value"
       assert.equal context.key2, "value2"
+
+    test "should run before eval", ->
+      testView = "<div eval=\"evalFunc(key)\" data-define=\"{key: 'value'}\"></div>"
+      context = {
+        evalFunc: @spy(),
+      }
+      setupView(testView, context)
+
+      assert.isTrue context.evalFunc.calledWith('value')
 
     test "should throw a helpful error if trying to define improperly", ->
       testView = "<div data-define=\"{key: 'value', key2: 'value2\"></div>"
@@ -1033,6 +1054,18 @@ suite "TwineLegacy", ->
       Twine.refreshImmediately()
       assert.isTrue options[2].selected
 
+    test "should work with define before bind in a two-way binding", ->
+      testView = "<input type=\"text\" define=\"{key: 'value'}\" bind=\"key\">"
+      node = setupView(testView, context = {})
+
+      assert.equal node.value, 'value'
+
+    test "should work with define after bind in a two-way binding", ->
+      testView = "<input type=\"text\" bind=\"key\" define=\"{key: 'value'}\">"
+      node = setupView(testView, context = {})
+
+      assert.equal node.value, 'value'
+
     test "should work with arbitrary javascript", ->
       testView = "<div bind=\"key * 2\"></div>"
       node = setupView(testView, key: 4)
@@ -1047,6 +1080,57 @@ suite "TwineLegacy", ->
       testView = "<div bind=\"key\"></div>"
       node = setupView(testView, key: "<script>")
       assert.equal node.innerHTML, "&lt;script&gt;"
+
+    test "should be the first binding to run on input event", ->
+      testView = "<input type=\"text\" bind-event-input=\"eventFunc()\" bind=\"val\">"
+      context = {
+        eventFunc: @spy(),
+      }
+      bindGetter = @spy()
+      Object.defineProperty(context, 'val', {
+        get: bindGetter,
+        set: @spy()
+      })
+      node = setupView(testView, context)
+      context.eventFunc.reset()
+      bindGetter.reset()
+
+      triggerEvent node, "input"
+      sinon.assert.callOrder bindGetter, context.eventFunc
+
+    test "should be the first binding to run on keyup event", ->
+      testView = "<input type=\"text\" bind-event-keyup=\"eventFunc()\" bind=\"val\">"
+      context = {
+        eventFunc: @spy(),
+      }
+      bindGetter = @spy()
+      Object.defineProperty(context, 'val', {
+        get: bindGetter,
+        set: @spy()
+      })
+      node = setupView(testView, context)
+      context.eventFunc.reset()
+      bindGetter.reset()
+
+      triggerEvent node, "keyup"
+      sinon.assert.callOrder bindGetter, context.eventFunc
+
+    test "should be the first binding to run on change event", ->
+      testView = "<input type=\"text\" bind-event-change=\"eventFunc()\" bind=\"val\">"
+      context = {
+        eventFunc: @spy(),
+      }
+      bindGetter = @spy()
+      Object.defineProperty(context, 'val', {
+        get: bindGetter,
+        set: @spy()
+      })
+      node = setupView(testView, context)
+      context.eventFunc.reset()
+      bindGetter.reset()
+
+      triggerEvent node, "change"
+      sinon.assert.callOrder bindGetter, context.eventFunc
 
   suite "bind-show attribute", ->
     test "should apply the \"hide\" class when falsy", ->
@@ -1241,6 +1325,15 @@ suite "TwineLegacy", ->
 
       assert.equal context.key, "value"
       assert.equal context.key2, "value2"
+
+    test "should run before eval", ->
+      testView = "<div eval=\"evalFunc(key)\" define=\"{key: 'value'}\"></div>"
+      context = {
+        evalFunc: @spy(),
+      }
+      setupView(testView, context)
+
+      assert.isTrue context.evalFunc.calledWith('value')
 
     test "should throw a helpful error if trying to define improperly", ->
       testView = "<div define=\"{key: 'value', key2: 'value2\"></div>"

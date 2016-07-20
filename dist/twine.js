@@ -10,7 +10,7 @@
       return root.Twine = factory();
     }
   })(this, function() {
-    var Twine, arrayPointersForNode, attribute, bind, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
+    var Twine, arrayPointersForNode, attribute, bind, bindingOrder, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
     Twine = {};
     Twine.shouldDiscardEvent = {};
     elements = {};
@@ -62,7 +62,7 @@
       }
     };
     bind = function(context, node, indexes, forceSaveContext) {
-      var attribute, binding, bindingConstructors, callback, callbacks, childNode, constructor, defineArrayAttr, definition, element, j, k, key, keypath, l, len, len1, len2, len3, m, newContextKey, newIndexes, ref, ref1, ref2, ref3, type, value;
+      var _, attribute, binding, bindingConstructors, callback, callbacks, childNode, constructor, defineArrayAttr, definition, element, j, k, key, keypath, l, len, len1, len2, len3, m, newContextKey, newIndexes, ref, ref1, ref2, ref3, ref4, type, value;
       currentBindingCallbacks = [];
       element = null;
       if (node.bindingId) {
@@ -99,11 +99,7 @@
           bindingConstructors = [];
         }
         definition = attribute.value;
-        if (type === 'bind') {
-          bindingConstructors.unshift([constructor, definition]);
-        } else {
-          bindingConstructors.push([constructor, definition]);
-        }
+        bindingConstructors.push([type, constructor, definition]);
       }
       if (bindingConstructors) {
         if (element == null) {
@@ -115,8 +111,9 @@
         if (element.indexes == null) {
           element.indexes = indexes;
         }
-        for (k = 0, len1 = bindingConstructors.length; k < len1; k++) {
-          ref1 = bindingConstructors[k], constructor = ref1[0], definition = ref1[1];
+        ref1 = bindingConstructors.sort(bindingOrder);
+        for (k = 0, len1 = ref1.length; k < len1; k++) {
+          ref2 = ref1[k], _ = ref2[0], constructor = ref2[1], definition = ref2[2];
           binding = constructor(node, context, definition, element);
           if (binding) {
             element.bindings.push(binding);
@@ -143,15 +140,15 @@
         }
       }
       callbacks = currentBindingCallbacks;
-      ref2 = node.children || [];
-      for (l = 0, len2 = ref2.length; l < len2; l++) {
-        childNode = ref2[l];
+      ref3 = node.children || [];
+      for (l = 0, len2 = ref3.length; l < len2; l++) {
+        childNode = ref3[l];
         bind(context, childNode, newContextKey != null ? null : indexes);
       }
       Twine.count = nodeCount;
-      ref3 = callbacks || [];
-      for (m = 0, len3 = ref3.length; m < len3; m++) {
-        callback = ref3[m];
+      ref4 = callbacks || [];
+      for (m = 0, len3 = ref4.length; m < len3; m++) {
+        callback = ref4[m];
         callback();
       }
       currentBindingCallbacks = null;
@@ -422,6 +419,23 @@
       event = document.createEvent('CustomEvent');
       event.initCustomEvent('bindings:change', true, false, {});
       return node.dispatchEvent(event);
+    };
+    bindingOrder = function(arg, arg1) {
+      var ORDERED_BINDINGS, firstType, secondType;
+      firstType = arg[0];
+      secondType = arg1[0];
+      ORDERED_BINDINGS = {
+        define: 1,
+        bind: 2,
+        "eval": 3
+      };
+      if (!ORDERED_BINDINGS[firstType]) {
+        return 1;
+      }
+      if (!ORDERED_BINDINGS[secondType]) {
+        return -1;
+      }
+      return ORDERED_BINDINGS[firstType] - ORDERED_BINDINGS[secondType];
     };
     Twine.bindingTypes = {
       bind: function(node, context, definition) {
