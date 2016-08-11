@@ -15,3 +15,7 @@ commands:
     syntax: ""
     desc: 'Run Twine tests'
     run: node_modules/.bin/testem ci
+
+packages:
+  - git@github.com:Shopify/dev-shopify.git
+
