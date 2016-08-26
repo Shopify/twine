@@ -587,7 +587,7 @@
     };
     setupPropertyBinding = function(attributeName, bindingName) {
       var booleanProp;
-      booleanProp = attributeName === 'checked' || attributeName === 'indeterminate' || attributeName === 'disabled' || attributeName === 'readOnly';
+      booleanProp = attributeName === 'checked' || attributeName === 'indeterminate' || attributeName === 'disabled' || attributeName === 'readOnly' || attributeName === 'draggable';
       return Twine.bindingTypes["bind-" + (bindingName.toLowerCase())] = function(node, context, definition) {
         var fn, lastValue;
         fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
@@ -610,7 +610,7 @@
         };
       };
     };
-    ref = ['placeholder', 'checked', 'indeterminate', 'disabled', 'href', 'title', 'readOnly', 'src'];
+    ref = ['placeholder', 'checked', 'indeterminate', 'disabled', 'href', 'title', 'readOnly', 'src', 'draggable'];
     for (j = 0, len = ref.length; j < len; j++) {
       attribute = ref[j];
       setupPropertyBinding(attribute, attribute);

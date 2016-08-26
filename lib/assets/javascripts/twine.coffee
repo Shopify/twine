@@ -406,7 +406,7 @@
     indexes
 
   setupPropertyBinding = (attributeName, bindingName) ->
-    booleanProp = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly']
+    booleanProp = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly', 'draggable']
 
     Twine.bindingTypes["bind-#{bindingName.toLowerCase()}"] = (node, context, definition) ->
       fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
@@ -419,7 +419,7 @@
 
         fireCustomChangeEvent(node) if attributeName == 'checked'
 
-  for attribute in ['placeholder', 'checked', 'indeterminate', 'disabled', 'href', 'title', 'readOnly', 'src']
+  for attribute in ['placeholder', 'checked', 'indeterminate', 'disabled', 'href', 'title', 'readOnly', 'src', 'draggable']
     setupPropertyBinding(attribute, attribute)
 
   setupPropertyBinding('innerHTML', 'unsafe-html')
