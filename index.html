@@ -134,7 +134,7 @@
     A minimalistic two-way binding system.
     <a href="https://github.com/Shopify/twine">View twine on GitHub.</a>
     </p>
-  <pre bind="JSON.stringify(window.context, null, '  ')"></pre>
+  <pre data-bind="JSON.stringify(window.context, null, '  ')"></pre>
 </div>
 
 <div class="right">
@@ -144,17 +144,17 @@
 <p>For input elements, the initial value of a binding will be read from the DOM if it's not already defined:</p>
 
 <div class="prepend-pre">
-<input type="text" bind="color" value="blue">
-<strong bind="color.length"></strong> characters used.
+<input type="text" data-bind="color" value="blue">
+<strong data-bind="color.length"></strong> characters used.
 </div>
 
 <h2>Contexts</h2>
-<p>Every binding is evaluated relative to a <i>context</i>. All this means is that when you write <code>bind="key"</code>, you're accessing the <code>key</code> property of the current context. Any value can be used as a context, so most of the time you'll use a plain ol' JavaScript object.</p>
+<p>Every binding is evaluated relative to a <i>context</i>. All this means is that when you write <code>data-bind="key"</code>, you're accessing the <code>key</code> property of the current context. Any value can be used as a context, so most of the time you'll use a plain ol' JavaScript object.</p>
 
 <p>The context for this page is stored on <code>window</code>, so you can access it in the console if you want. Since it's just an object, it's easy to encode:</p>
 
 <div class="prepend-pre">
-<pre bind="JSON.stringify(window.context)"></pre>
+<pre data-bind="JSON.stringify(window.context)"></pre>
 </div>
 
 <p>In this demonstration, the context was defined and initialized with:</p>
@@ -171,135 +171,136 @@ Twine.reset(context).bind().refresh();
 <p>It is also possible to create sub-contexts with the <code>define</code> attribute.</p>
 
 <div class="prepend-pre">
-<div define="{name: {first: 'John', last: 'Smith'}}">
+<div data-define="{name: {first: 'John', last: 'Smith'}}">
   <label for="firstname">What is your first name?</label>
-  <input id="firstname" type="text" bind="name.first">
+  <input id="firstname" type="text" data-bind="name.first">
   <label for="lastname">What is your last name?</label>
-  <input id="lastname" type="text" bind="name.last">
+  <input id="lastname" type="text" data-bind="name.last">
 </div>
 <span>
-  Hello, <strong bind="name.first + ' ' + name.last"></strong>
+  Hello, <strong data-bind="name.first + ' ' + name.last"></strong>
 </span>
 </div>
 
-<p><code>define</code> can be used for context creation or for introducing variables into the current context.</p>
+<p><code>data-define</code> can be used for context creation or for introducing variables into the current context.</p>
 
 <div class="prepend-pre">
-<div define="{showBox: true}">
-  <button bind-event-click="showBox = !showBox">Toggle visibility</button>
-  <div bind-show="showBox">I'm visible!</div>
+<div data-define="{showBox: true}">
+  <button data-bind-event-click="showBox = !showBox">Toggle visibility</button>
+  <div data-bind-show="showBox">I'm visible!</div>
 </div>
 </div>
 
-<p>This can be pretty useful for when you want to use <code>bind-show</code> and start in a visible state.</p>
+<p>This can be pretty useful for when you want to use <code>data-bind-show</code> and start in a visible state.</p>
 
-<p><code>context</code> lets you change the current context for every element nested inside.</p>
+<p><code>data-context</code> lets you change the current context for every element nested inside.</p>
 
 <div class="prepend-pre">
-<div define="{object: {value: 'foo'} }" context="object">
-  <span bind="value"></span> <!-- object.value from inside the context of object -->
+<div data-define="{object: {value: 'foo'} }" data-context="object">
+  <span data-bind="value"></span> <!-- object.value from inside the context of object -->
 </div>
 <div>
-  <span bind="object.value"> <!-- object.value from outside the context of object -->
+  <span data-bind="object.value"> <!-- object.value from outside the context of object -->
 </div>
 </div>
 
 <h2>Define-array</h2>
-<p><code>define-array</code> lets you define an array of objects one at a time in the context and implicitly reference the correct member in the array.</p>
+<p><code>data-define-array</code> lets you define an array of objects one at a time in the context and implicitly reference the correct member in the array.</p>
 
 <div class="prepend-pre">
 <div data-define-array="{widgets: {value: 5, foo: function(){ return 12; }}}">
   <div data-define-array="{things: {value: 50}}">
-    <span bind="widgets.value"></span> <!-- widgets[0].value -->
-    <span bind="widgets.foo()"></span> <!-- widgets[0].foo() -->
-    <span bind="things.value"></span> <!-- things[0].value -->
+    <span data-bind="widgets.value"></span> <!-- widgets[0].value -->
+    <span data-bind="widgets.foo()"></span> <!-- widgets[0].foo() -->
+    <span data-bind="things.value"></span> <!-- things[0].value -->
   </div>
   <div data-define-array="{things: {value: 75}}">
-    <span bind="widgets.value">5</span> <!-- widgets[0].value -->
-    <span bind="widgets.foo()"></span> <!-- widgets[0].foo() -->
-    <span bind="things.value"></span> <!-- things[1].value -->
+    <span data-bind="widgets.value">5</span> <!-- widgets[0].value -->
+    <span data-bind="widgets.foo()"></span> <!-- widgets[0].foo() -->
+    <span data-bind="things.value"></span> <!-- things[1].value -->
   </div>
 </div>
 <div data-define-array="{widgets: {value: 10, foo: function(){ return 99; }}}">
   <div data-define-array="{things: {value: 100}}">
-    <span bind="widgets.value"></span> <!-- widgets[1].value -->
-    <span bind="widgets.foo()"></span> <!-- widgets[1].foo() -->
-    <span bind="things.value"></span> <!-- things[2].value -->
+    <span data-bind="widgets.value"></span> <!-- widgets[1].value -->
+    <span data-bind="widgets.foo()"></span> <!-- widgets[1].foo() -->
+    <span data-bind="things.value"></span> <!-- things[2].value -->
   </div>
   <div data-define-array="{things: {value: 125}}">
-    <span bind="widgets.value"></span> <!-- widgets[1].value -->
-    <span bind="widgets.foo()"></span> <!-- widgets[1].foo() -->
-    <span bind="things.value"></span> <!-- things[3].value -->
+    <span data-bind="widgets.value"></span> <!-- widgets[1].value -->
+    <span data-bind="widgets.foo()"></span> <!-- widgets[1].foo() -->
+    <span data-bind="things.value"></span> <!-- things[3].value -->
   </div>
 </div>
 </div>
 
-<p><code>define-array</code> can also be used with <code>context</code></p>
+<p><code>data-define-array</code> can also be used with <code>data-context</code></p>
 <div class="prepend-pre">
-<div data-define-array="{objects: {value: 'asdf', foo: function(){ return 'lmnop'; }}}"  context="objects"> <!-- objects[0] -->
-  <span bind="value"></span> <!-- objects[0].value -->
-  <span bind="foo()"></span> <!-- objects[0].foo() -->
+<div data-define-array="{objects: {value: 'asdf', foo: function(){ return 'lmnop'; }}}"  data-context="objects"> <!-- objects[0] -->
+  <span data-bind="value"></span> <!-- objects[0].value -->
+  <span data-bind="foo()"></span> <!-- objects[0].foo() -->
 </div>
-<div data-define-array="{objects: {value: 'xyz', foo: function(){ return 'qrstuv'; }}}" context="objects"> <!-- objects[1] -->
-  <span bind="value"></span> <!-- objects[1].value -->
-  <span bind="foo()"></span> <!-- objects[1].foo() -->
+<div data-define-array="{objects: {value: 'xyz', foo: function(){ return 'qrstuv'; }}}" data-context="objects"> <!-- objects[1] -->
+  <span data-bind="value"></span> <!-- objects[1].value -->
+  <span data-bind="foo()"></span> <!-- objects[1].foo() -->
 </div>
 </div>
 
 <h2>Visibility bindings</h2>
-<p><code>bind-show</code> adds the class <code>hide</code> to the node.  You can then use CSS like <code>.hide { display: none; }</code> or similar to hide the node and its children from view.</p>
+<p><code>data-bind-show</code> adds the class <code>hide</code> to the node.  You can then use CSS like <code>.hide { display: none; }</code> or similar to hide the node and its children from view.</p>
 <div class="prepend-pre">
 <label>Enter a color:</label>
-<input type="text" bind="color">
-<p bind-show="color">
-  That color is <strong bind-show="color.length <= 4">not</strong> longer than 4 characters.
+<input type="text" data-bind="color">
+<p data-bind-show="color">
+  That color is <strong data-bind-show="color.length <= 4">not</strong> longer than 4 characters.
 </p>
 </div>
 
 <h2>Class bindings</h2>
-<p><code>bind-class</code> toggles a node's classes, given an object with class names for keys and booleans for values.</p>
+<p><code>data-bind-class</code> toggles a node's classes, given an object with class names for keys and booleans for values.</p>
 <div class="prepend-pre">
 <label>Enter a color:</label>
-<input type="text" bind="color">
-<h3 bind="color" bind-class="{blue: color == 'blue', green: color == 'green'}"></h3>
+<input type="text" data-bind="color">
+<h3 data-bind="color" data-bind-class="{blue: color == 'blue', green: color == 'green'}"></h3>
 </div>
 
 <h2>Checkboxes</h2>
 <p>The binding value of checkboxes is a boolean indicating the checked state.</p>
 <div class="prepend-pre">
-<input type="checkbox" bind="available">
-<span bind="available"></span>
+<input type="checkbox" data-bind="available">
+<span data-bind="available"></span>
 </div>
 
 <h2>Radio buttons</h2>
 <p>The binding value of radio buttons is the <code>value</code> attribute of the currently selected button. Make sure to use the same key for every button in the radio group.</p>
 <div class="prepend-pre">
-<p> State: <strong bind="state"></strong> </p>
-<input type="radio" name="state" bind="state" value="hidden" checked>
-<input type="radio" name="state" bind="state" value="published">
+<p> State: <strong data-bind="state"></strong> </p>
+<input type="radio" name="state" data-bind="state" value="hidden" checked>
+<input type="radio" name="state" data-bind="state" value="published">
 </div>
 
-<p>Alternatively, you may use <code>bind-checked</code>, which is a one-way binding of the <code>checked</code> attribute.</p>
+<p>Alternatively, you may use <code>data-bind-checked</code>, which is a one-way binding of the <code>checked</code> attribute.</p>
 
 <h2>Attribute bindings</h2>
 
 <p>The following DOM attributes can be bound to via:</p>
 
 <ul>
-  <li><code>bind-placeholder</code></li>
-  <li><code>bind-checked</code></li>
-  <li><code>bind-disabled</code></li>
-  <li><code>bind-href</code></li>
-  <li><code>bind-title</code></li>
-  <li><code>bind-readOnly</code></li>
+  <li><code>data-bind-placeholder</code></li>
+  <li><code>data-bind-checked</code></li>
+  <li><code>data-bind-disabled</code></li>
+  <li><code>data-bind-href</code></li>
+  <li><code>data-bind-title</code></li>
+  <li><code>data-bind-readOnly</code></li>
+  <li><code>data-bind-draggable</code></li>
 </ul>
 
 <div class="prepend-pre">
 <label>What are you interested in?</label>
-<input type="text" bind="yourInterest">
-<p bind-show="yourInterest">
+<input type="text" data-bind="yourInterest">
+<p data-bind-show="yourInterest">
   Search Google for
-  <a href="#" bind-href="'https://www.google.ca/?q=' + yourInterest" bind="yourInterest" target="_blank"></a>
+  <a href="#" data-bind-href="'https://www.google.ca/?q=' + yourInterest" data-bind="yourInterest" target="_blank"></a>
 </p>
 </div>
 
@@ -317,39 +318,39 @@ Twine.reset(context).bind().refresh();
 <p>The following events are provided:</p>
 
 <ul>
-  <li><code>bind-event-click</code></li>
-  <li><code>bind-event-dblclick</code></li>
-  <li><code>bind-event-mouseenter</code></li>
-  <li><code>bind-event-mouseleave</code></li>
-  <li><code>bind-event-mouseover</code></li>
-  <li><code>bind-event-mouseout</code></li>
-  <li><code>bind-event-mousedown</code></li>
-  <li><code>bind-event-mouseup</code></li>
-  <li><code>bind-event-submit</code></li>
-  <li><code>bind-event-dragenter</code></li>
-  <li><code>bind-event-dragleave</code></li>
-  <li><code>bind-event-dragover</code></li>
-  <li><code>bind-event-drop</code></li>
-  <li><code>bind-event-drag</code></li>
-  <li><code>bind-event-change</code></li>
-  <li><code>bind-event-keypress</code></li>
-  <li><code>bind-event-keydown</code></li>
-  <li><code>bind-event-keyup</code></li>
-  <li><code>bind-event-input</code></li>
-  <li><code>bind-event-error</code></li>
-  <li><code>bind-event-done</code></li>
-  <li><code>bind-event-success</code></li>
-  <li><code>bind-event-fail</code></li>
-  <li><code>bind-event-blur</code></li>
-  <li><code>bind-event-focus</code></li>
-  <li><code>bind-event-load</code></li>
+  <li><code>data-bind-event-click</code></li>
+  <li><code>data-bind-event-dblclick</code></li>
+  <li><code>data-bind-event-mouseenter</code></li>
+  <li><code>data-bind-event-mouseleave</code></li>
+  <li><code>data-bind-event-mouseover</code></li>
+  <li><code>data-bind-event-mouseout</code></li>
+  <li><code>data-bind-event-mousedown</code></li>
+  <li><code>data-bind-event-mouseup</code></li>
+  <li><code>data-bind-event-submit</code></li>
+  <li><code>data-bind-event-dragenter</code></li>
+  <li><code>data-bind-event-dragleave</code></li>
+  <li><code>data-bind-event-dragover</code></li>
+  <li><code>data-bind-event-drop</code></li>
+  <li><code>data-bind-event-drag</code></li>
+  <li><code>data-bind-event-change</code></li>
+  <li><code>data-bind-event-keypress</code></li>
+  <li><code>data-bind-event-keydown</code></li>
+  <li><code>data-bind-event-keyup</code></li>
+  <li><code>data-bind-event-input</code></li>
+  <li><code>data-bind-event-error</code></li>
+  <li><code>data-bind-event-done</code></li>
+  <li><code>data-bind-event-success</code></li>
+  <li><code>data-bind-event-fail</code></li>
+  <li><code>data-bind-event-blur</code></li>
+  <li><code>data-bind-event-focus</code></li>
+  <li><code>data-bind-event-load</code></li>
 </ul>
 
 <h3>Example: click events</h3>
 <p>Remember how bindings are just JavaScript? The same applies for event handlers.</p>
 <div class="prepend-pre">
-<a href="#" class="green" bind-event-click="color = 'green'">green</a> or
-<a href="#" class="blue" bind-event-click="color = 'blue'">blue</a>
+<a href="#" class="green" data-bind-event-click="color = 'green'">green</a> or
+<a href="#" class="blue" data-bind-event-click="color = 'blue'">blue</a>
 </div>
 
 <p>However, inline mutation is pretty ghetto, so let's define some functions on our context.  (these won't appear in the sidebar since <code>JSON.stringify</code> ignores functions)</p>
@@ -364,7 +365,7 @@ context.toggleColor = function() {
 </script>
 
 <div class="prepend-pre">
-Switch to <a href="#" bind="otherColor()" bind-event-click="toggleColor()"></a>
+Switch to <a href="#" data-bind="otherColor()" data-bind-event-click="toggleColor()"></a>
 </div>
 
 <h3>Event arguments</h3>
@@ -383,13 +384,13 @@ context.keyPressed = function(node, event) {
 </script>
 
 <div class="prepend-pre">
-<input id="foo" type="text" bind-event-keydown="keyPressed(this, event)" placeholder="foo">
-<input id="bar" type="text" bind-event-keydown="keyPressed(this, event)" placeholder="bar">
+<input id="foo" type="text" data-bind-event-keydown="keyPressed(this, event)" placeholder="foo">
+<input id="bar" type="text" data-bind-event-keydown="keyPressed(this, event)" placeholder="bar">
 <p>
-  You pressed key: <strong bind="whichKey"></strong>
+  You pressed key: <strong data-bind="whichKey"></strong>
 </p>
 <p>
-  inside of input with ID: <strong bind="whichInput"></strong>
+  inside of input with ID: <strong data-bind="whichInput"></strong>
 </p>
 </div>
 
