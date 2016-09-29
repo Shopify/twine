@@ -22,6 +22,11 @@ suite "Twine", ->
       node = setupView(testView, key: "value")
       assert.equal node.innerHTML, "value"
 
+    test "should bind basic keypath functions", ->
+      testView = "<div data-bind=\"key\"></div>"
+      node = setupView(testView, key: () -> "value")
+      assert.equal node.innerHTML, "value"
+
     test "should bind compound keypaths", ->
       testView = "<div data-bind=\"key.nested.more\"></div>"
       node = setupView(testView, key: {nested: { more: "value"}})
@@ -350,6 +355,14 @@ suite "Twine", ->
 
       assert.isTrue context.fn.calledOnce
       assert.isTrue context.fn.calledWith(data)
+
+    test "should work with keypath", ->
+      testView = "<form data-bind-event-submit=\"fn\"></form>"
+      node = setupView(testView, context = fn: @spy())
+
+      $(node).trigger 'submit'
+
+      assert.isTrue context.fn.calledOnce
 
     test "unbind should remove event listener", ->
       testView = "<div data-bind-event-click=\"fn()\"></div>"

@@ -253,9 +253,21 @@
   wrapFunctionString = (code, args, node) ->
     if isKeypath(code) && keypath = keypathForKey(node, code)
       if keypath[0] == '$root'
-        ($context, $root) -> getValue($root, keypath)
+        ($context, $root) ->
+          value = getValue($root, keypath)
+          if typeof value == 'function'
+            value()
+          else
+            value
+
       else
-        ($context, $root) -> getValue($context, keypath)
+        ($context, $root) ->
+          value = getValue($context, keypath)
+          if typeof value == 'function'
+            value()
+          else
+            value
+
     else
       code = "return #{code}"
       code = "with($arrayPointers) { #{code} }" if nodeArrayIndexes(node)

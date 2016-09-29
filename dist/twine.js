@@ -368,11 +368,23 @@
       if (isKeypath(code) && (keypath = keypathForKey(node, code))) {
         if (keypath[0] === '$root') {
           return function($context, $root) {
-            return getValue($root, keypath);
+            var value;
+            value = getValue($root, keypath);
+            if (typeof value === 'function') {
+              return value();
+            } else {
+              return value;
+            }
           };
         } else {
           return function($context, $root) {
-            return getValue($context, keypath);
+            var value;
+            value = getValue($context, keypath);
+            if (typeof value === 'function') {
+              return value();
+            } else {
+              return value;
+            }
           };
         }
       } else {
