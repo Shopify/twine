@@ -32,9 +32,27 @@ suite "Twine", ->
       node = setupView(testView, key: {nested: { more: "value"}})
       assert.equal node.innerHTML, "value"
 
+    test "should bind compound keypath functions", ->
+      testView = "<div data-bind=\"key.nested.more\"></div>"
+      node = setupView(testView, key: {nested: { more: () -> "value"}})
+      assert.equal node.innerHTML, "value"
+
     test "should bind array accessor keypaths", ->
       testView = "<input data-bind=\"key[0]\">"
       node = setupView(testView, context = key: ["value"])
+      assert.equal node.value, "value"
+
+      context.key[0] = "new"
+      Twine.refreshImmediately()
+      assert.equal node.value, "new"
+
+      node.value = "value"
+      triggerEvent node, "change"
+      assert.equal node.value, "value"
+
+    test "should bind array accessor keypath functions", ->
+      testView = "<input data-bind=\"key[0]\">"
+      node = setupView(testView, context = key: [() -> "value"])
       assert.equal node.value, "value"
 
       context.key[0] = "new"
@@ -363,6 +381,19 @@ suite "Twine", ->
       $(node).trigger 'submit'
 
       assert.isTrue context.fn.calledOnce
+
+    test "should execute keypath function passing in node, event", (done) ->
+      testView = "<form data-bind-event-submit=\"fn\"></form>"
+      event = $.Event('submit')
+
+      node = setupView(testView, context = {
+        fn: (passedNode, passedEvent) ->
+          assert.equal(node, passedNode)
+          assert.equal(passedEvent, event)
+          done()
+      })
+
+      $(node).trigger(event)
 
     test "unbind should remove event listener", ->
       testView = "<div data-bind-event-click=\"fn()\"></div>"

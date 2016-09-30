@@ -253,18 +253,17 @@
   wrapFunctionString = (code, args, node) ->
     if isKeypath(code) && keypath = keypathForKey(node, code)
       if keypath[0] == '$root'
-        ($context, $root) ->
+        ($context, $root, arrayIndexes, event) ->
           value = getValue($root, keypath)
           if typeof value == 'function'
-            value()
+            value(node, event)
           else
             value
-
       else
-        ($context, $root) ->
+        ($context, $root, arrayIndexes, event) ->
           value = getValue($context, keypath)
           if typeof value == 'function'
-            value()
+            value(node, event)
           else
             value
 
@@ -441,7 +440,9 @@
 
         return if discardEvent
 
-        wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data)
+        wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node)
+          .call(node, context, rootContext, arrayPointersForNode(node, context), event, data)
+
         Twine.refreshImmediately()
       $(node).on eventName, onEventHandler
 
