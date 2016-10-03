@@ -517,22 +517,22 @@
         };
       },
       'bind-class': function(node, context, definition) {
-        var $node, fn, lastValue;
+        var $node, fn, lastValues;
         fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
-        lastValue = {};
+        lastValues = {};
         $node = $(node);
         return {
           refresh: function() {
-            var additions, cached, key, newValue, removals, value;
-            newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context));
+            var additions, currValue, key, newValue, newValues, ref, removals, value;
+            newValues = fn.call(node, context, rootContext, arrayPointersForNode(node, context));
             additions = [];
             removals = [];
-            for (key in newValue) {
-              value = newValue[key];
-              value = newValue[key] = !!newValue[key];
-              cached = lastValue[key];
-              if (cached === void 0 && $node.hasClass(key) !== value || cached !== value) {
-                if (value) {
+            for (key in newValues) {
+              value = newValues[key];
+              newValue = newValues[key] = !!newValues[key];
+              currValue = (ref = lastValues[key]) != null ? ref : $node.hasClass(key);
+              if (currValue !== newValue) {
+                if (newValue) {
                   additions.push(key);
                 } else {
                   removals.push(key);
@@ -545,7 +545,7 @@
             if (additions.length) {
               $node.addClass(additions.join(' '));
             }
-            return lastValue = newValue;
+            return lastValues = newValues;
           }
         };
       },

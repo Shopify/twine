@@ -363,23 +363,25 @@
 
     'bind-class': (node, context, definition) ->
       fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
-      lastValue = {}
+      lastValues = {}
       $node = $(node)
       return refresh: ->
-        newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
+        newValues = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
         additions = []
         removals = []
-        for key, value of newValue
-          value = newValue[key] = !!newValue[key]
-          cached = lastValue[key]
-          if cached == undefined && $node.hasClass(key) != value || cached != value
-            if value
+
+        for key, value of newValues
+          newValue = newValues[key] = !!newValues[key]
+          currValue = lastValues[key] ? $node.hasClass(key)
+          if currValue != newValue
+            if newValue
               additions.push(key)
             else
               removals.push(key)
+
         $node.removeClass(removals.join(' ')) if removals.length
         $node.addClass(additions.join(' ')) if additions.length
-        lastValue = newValue
+        lastValues = newValues
 
     'bind-attribute': (node, context, definition) ->
       fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
