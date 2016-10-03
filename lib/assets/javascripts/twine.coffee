@@ -364,10 +364,21 @@
     'bind-class': (node, context, definition) ->
       fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
       lastValue = {}
+      $node = $(node)
       return refresh: ->
         newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
-        for key, value of newValue when !lastValue[key] != !value
-          $(node).toggleClass(key, !!value)
+        additions = []
+        removals = []
+        for key, value of newValue
+          value = newValue[key] = !!newValue[key]
+          cached = lastValue[key]
+          if cached == undefined && $node.hasClass(key) != value || cached != value
+            if value
+              additions.push(key)
+            else
+              removals.push(key)
+        $node.removeClass(removals.join(' ')) if removals.length
+        $node.addClass(additions.join(' ')) if additions.length
         lastValue = newValue
 
     'bind-attribute': (node, context, definition) ->
