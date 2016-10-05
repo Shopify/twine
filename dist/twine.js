@@ -531,7 +531,14 @@
             for (key in newValue) {
               value = newValue[key];
               if (lastValue[key] !== value) {
-                $(node).attr(key, value || null);
+                if (value) {
+                  if (typeof value === 'function') {
+                    value = value();
+                  }
+                  node.setAttribute(key, value);
+                } else {
+                  node.removeAttribute(key);
+                }
               }
             }
             return lastValue = newValue;

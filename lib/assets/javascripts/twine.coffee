@@ -368,7 +368,11 @@
       return refresh: ->
         newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
         for key, value of newValue when lastValue[key] != value
-          $(node).attr(key, value || null)
+          if value
+            value = value() if typeof value == 'function'
+            node.setAttribute(key, value)
+          else
+            node.removeAttribute(key)
         lastValue = newValue
 
     define: (node, context, definition) ->
