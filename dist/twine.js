@@ -498,7 +498,7 @@
             if (newValue === lastValue) {
               return;
             }
-            return $(node).toggleClass('hide', lastValue = newValue);
+            return node.classList.toggle('hide', lastValue = newValue);
           }
         };
       },
@@ -513,7 +513,7 @@
             for (key in newValue) {
               value = newValue[key];
               if (!lastValue[key] !== !value) {
-                $(node).toggleClass(key, !!value);
+                node.classList.toggle(key, !!value);
               }
             }
             return lastValue = newValue;

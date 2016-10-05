@@ -351,7 +351,7 @@
       return refresh: ->
         newValue = !fn.call(node, context, rootContext, arrayPointersForNode(node, context))
         return if newValue == lastValue
-        $(node).toggleClass('hide', lastValue = newValue)
+        node.classList.toggle('hide', lastValue = newValue)
 
     'bind-class': (node, context, definition) ->
       fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
@@ -359,7 +359,7 @@
       return refresh: ->
         newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
         for key, value of newValue when !lastValue[key] != !value
-          $(node).toggleClass(key, !!value)
+          node.classList.toggle(key, !!value)
         lastValue = newValue
 
     'bind-attribute': (node, context, definition) ->
