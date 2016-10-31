@@ -366,7 +366,7 @@
       return refresh: ->
         newValue = !fn.call(node, context, rootContext, arrayPointersForNode(node, context))
         return if newValue == lastValue
-        $(node).toggleClass('hide', lastValue = newValue)
+        node.classList.toggle('hide') if lastValue = newValue
 
     'bind-class': (node, context, definition) ->
       fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
