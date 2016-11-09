@@ -10,7 +10,7 @@
       return root.Twine = factory();
     }
   })(this, function() {
-    var Twine, arrayPointersForNode, attribute, bind, bindingOrder, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
+    var Twine, arrayPointersForNode, attribute, bind, bindingOrder, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshCallbacks, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
     Twine = {};
     Twine.shouldDiscardEvent = {};
     elements = {};
@@ -19,6 +19,7 @@
     rootContext = null;
     keypathRegex = /^[a-z]\w*(\.[a-z]\w*|\[\d+\])*$/i;
     refreshQueued = false;
+    refreshCallbacks = [];
     rootNode = null;
     currentBindingCallbacks = null;
     Twine.getAttribute = function(node, attr) {
@@ -161,7 +162,10 @@
       }
       return elements[name1 = node.bindingId] != null ? elements[name1] : elements[name1] = {};
     };
-    Twine.refresh = function() {
+    Twine.refresh = function(callback) {
+      if (callback) {
+        refreshCallbacks.push(callback);
+      }
       if (refreshQueued) {
         return;
       }
@@ -181,11 +185,17 @@
       }
     };
     Twine.refreshImmediately = function() {
-      var element, key;
+      var callbacks, cb, element, j, key, len;
       refreshQueued = false;
       for (key in elements) {
         element = elements[key];
         refreshElement(element);
+      }
+      callbacks = refreshCallbacks;
+      refreshCallbacks = [];
+      for (j = 0, len = callbacks.length; j < len; j++) {
+        cb = callbacks[j];
+        cb();
       }
     };
     Twine.register = function(name, component) {
