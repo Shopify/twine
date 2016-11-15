@@ -742,6 +742,24 @@ suite "Twine", ->
       assert.isTrue cb2.calledOnce
       assert.isTrue cb3.calledOnce
 
+    test "refreshing with a callback in a refresh callback works and defers second callback, dawg", ->
+      setupView("", {})
+      cb1 = @spy()
+      cb2 = @spy()
+
+      Twine.refresh ->
+        cb1()
+        Twine.refresh ->
+          cb2()
+
+      Twine.refreshImmediately()
+      assert.isTrue cb1.calledOnce
+      assert.isFalse cb2.called
+
+      Twine.refreshImmediately()
+      assert.isTrue cb1.calledOnce
+      assert.isTrue cb2.calledOnce
+
   suite "data-bind", ->
     test "should descend contexts", ->
       inner = key: "value"
