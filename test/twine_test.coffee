@@ -681,7 +681,7 @@ suite "Twine", ->
       $(node).trigger(event)
       assert.isFalse event.preventDefault.called
 
-  suite "data-refresh", ->
+  suite "refresh", ->
     test "should defer calls and refresh once", ->
       setupView("", {})
       @spy(Twine, "refreshImmediately")
@@ -721,6 +721,44 @@ suite "Twine", ->
       triggerEvent node, "change"
       @clock.tick 100
       assert.isFalse Twine.refreshImmediately.called
+
+    test "should call callbacks only once", ->
+      setupView("", {})
+
+      Twine.refresh(cb1 = @spy())
+      Twine.refresh(cb2 = @spy())
+      assert.isFalse cb1.called
+      assert.isFalse cb2.called
+
+      @clock.tick 100
+      assert.isTrue cb1.calledOnce
+      assert.isTrue cb2.calledOnce
+
+      Twine.refresh(cb3 = @spy())
+      assert.isFalse cb3.called
+
+      @clock.tick 100
+      assert.isTrue cb1.calledOnce
+      assert.isTrue cb2.calledOnce
+      assert.isTrue cb3.calledOnce
+
+    test "refreshing with a callback in a refresh callback works and defers second callback, dawg", ->
+      setupView("", {})
+      cb1 = @spy()
+      cb2 = @spy()
+
+      Twine.refresh ->
+        cb1()
+        Twine.refresh ->
+          cb2()
+
+      Twine.refreshImmediately()
+      assert.isTrue cb1.calledOnce
+      assert.isFalse cb2.called
+
+      Twine.refreshImmediately()
+      assert.isTrue cb1.calledOnce
+      assert.isTrue cb2.calledOnce
 
   suite "data-bind", ->
     test "should descend contexts", ->

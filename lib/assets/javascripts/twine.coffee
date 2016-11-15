@@ -24,6 +24,7 @@
 
   keypathRegex = /^[a-z]\w*(\.[a-z]\w*|\[\d+\])*$/i # Tests if a string is a pure keypath.
   refreshQueued = false
+  refreshCallbacks = []
   rootNode = null
 
   currentBindingCallbacks = null
@@ -124,7 +125,9 @@
     elements[node.bindingId] ?= {}
 
   # Queues a refresh of the DOM, batching up calls for the current synchronous block.
-  Twine.refresh = ->
+  # The callback will be called once when the refresh has completed.
+  Twine.refresh = (callback) ->
+    refreshCallbacks.push(callback) if callback
     return if refreshQueued
     refreshQueued = true
     setTimeout(Twine.refreshImmediately, 0)
@@ -136,6 +139,10 @@
   Twine.refreshImmediately = ->
     refreshQueued = false
     refreshElement(element) for key, element of elements
+
+    callbacks = refreshCallbacks
+    refreshCallbacks = []
+    cb() for cb in callbacks
     return
 
   Twine.register = (name, component) ->
