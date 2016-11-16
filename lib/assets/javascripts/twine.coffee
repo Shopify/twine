@@ -356,18 +356,8 @@
 
       if registry[name] != null
         props = {}
-        propsJSON = node.getAttribute('data-props')
-        if propsJSON && propsJSON.length > 0
-          try
-            #Do it better
-            propsJSON.replace('\\"', "\"")
-            propsJSON.replace('\'', "\"");
-            props = JSON.parse(propsJSON);
-          catch e
-            throw new Error("Twine binding error: props #{propsJSON} on #{node} not valid json");
-        else
-          props = {}
-
+        for key, value of node.dataset when value.indexOf('prop') >= 0
+          props[key.replace('prop', '')] = value
 
         controller = new registry[name](node, props, context);
         context[controllerId] = controller;

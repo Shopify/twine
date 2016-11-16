@@ -497,29 +497,23 @@
         };
       },
       controller: function(node, context, name) {
-        var controller, controllerId, e, error, props, propsJSON, ref, ref1;
+        var controller, controllerId, key, props, ref, ref1, ref2, value;
         controllerId = (name.replace(/\./g, '_')) + " _" + Twine.count;
         if (registry[name] !== null) {
           props = {};
-          propsJSON = node.getAttribute('data-props');
-          if (propsJSON && propsJSON.length > 0) {
-            try {
-              propsJSON.replace('\\"', "\"");
-              propsJSON.replace('\'', "\"");
-              props = JSON.parse(propsJSON);
-            } catch (error) {
-              e = error;
-              throw new Error("Retwine binding error: props " + propsJSON + " on " + node + " not valid json");
+          ref = node.dataset;
+          for (key in ref) {
+            value = ref[key];
+            if (value.indexOf('prop') >= 0) {
+              props[key.replace('prop', '')] = value;
             }
-          } else {
-            props = {};
           }
           controller = new registry[name](node, props, context);
           context[controllerId] = controller;
           node.setAttribute('data-context', controllerId);
           return {
-            refresh: ((ref = controller.refresh) != null ? ref.bind(controller) : void 0) || noOp,
-            teardown: ((ref1 = controller.teardown) != null ? ref1.bind(controller) : void 0) || noOp
+            refresh: ((ref1 = controller.refresh) != null ? ref1.bind(controller) : void 0) || noOp,
+            teardown: ((ref2 = controller.teardown) != null ? ref2.bind(controller) : void 0) || noOp
           };
         } else {
           throw new Error('Controller not registered');
