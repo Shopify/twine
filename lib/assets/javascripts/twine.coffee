@@ -380,19 +380,22 @@
     'bind-show': (node, context, definition) ->
       fn = bindingFunction(definition, '$context,$root,$arrayPointers', node)
       lastValue = undefined
+      $node = $(node)
       return refresh: ->
-          newValue = !fn.call(node, context, rootContext, arrayPointersForNode(node, context))
-          return if newValue == lastValue
-          node.classList.toggle('hide', lastValue = newValue)
+        newValue = !fn.call(node, context, rootContext, arrayPointersForNode(node, context))
+        return if newValue == lastValue
+        $node.toggleClass('hide', lastValue = newValue)
 
     'bind-class': (node, context, definition) ->
       fn = bindingFunction(definition, '$context,$root,$arrayPointers', node)
       lastValue = {}
+      $node = $(node)
       return refresh: ->
-          newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
-          for key, value of newValue when !lastValue[key] != !value
-            node.classList.toggle(key, !!value)
-          lastValue = newValue
+        newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
+        for key, value of newValue when !lastValue[key] != !value
+          $node.toggleClass(key, !!value)
+        lastValue = newValue
+
 
     'bind-attribute': (node, context, definition) ->
       fn = bindingFunction(definition, '$context,$root,$arrayPointers', node)

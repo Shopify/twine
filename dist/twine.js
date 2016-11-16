@@ -528,9 +528,10 @@
         }
       },
       'bind-show': function(node, context, definition) {
-        var fn, lastValue;
+        var $node, fn, lastValue;
         fn = bindingFunction(definition, '$context,$root,$arrayPointers', node);
         lastValue = void 0;
+        $node = $(node);
         return {
           refresh: function() {
             var newValue;
@@ -538,14 +539,15 @@
             if (newValue === lastValue) {
               return;
             }
-            return node.classList.toggle('hide', lastValue = newValue);
+            return $node.toggleClass('hide', lastValue = newValue);
           }
         };
       },
       'bind-class': function(node, context, definition) {
-        var fn, lastValue;
+        var $node, fn, lastValue;
         fn = bindingFunction(definition, '$context,$root,$arrayPointers', node);
         lastValue = {};
+        $node = $(node);
         return {
           refresh: function() {
             var key, newValue, value;
@@ -553,7 +555,7 @@
             for (key in newValue) {
               value = newValue[key];
               if (!lastValue[key] !== !value) {
-                node.classList.toggle(key, !!value);
+                $node.toggleClass(key, !!value);
               }
             }
             return lastValue = newValue;
