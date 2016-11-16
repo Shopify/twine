@@ -10,9 +10,12 @@
       return root.Twine = factory();
     }
   })(this, function() {
-    var Twine, arrayPointersForNode, attribute, bind, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
+    var Twine, arrayPointersForNode, attribute, bind, bindingFunction, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, noOp, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode;
     Twine = {};
     Twine.shouldDiscardEvent = {};
+    noOp = function() {
+      return void 0;
+    };
     elements = {};
     registry = {};
     nodeCount = 0;
@@ -195,8 +198,9 @@
       if (registry[name]) {
         throw new Error("Twine error: '" + name + "' is already registered with Twine");
       } else {
-        return registry[name] = component;
+        registry[name] = component;
       }
+      return Twine;
     };
     Twine.change = function(node, bubble) {
       var event;
@@ -363,20 +367,25 @@
         return attr.name + "=" + (JSON.stringify(attr.value));
       }).join(' ');
     };
-    wrapFunctionString = function(code, args, node) {
-      var e, error, keypath;
-      if (isKeypath(code) && (keypath = keypathForKey(node, code))) {
+    bindingFunction = function(bindingText, args, node) {
+      var code, e, error, keypath, useRoot;
+      if (isKeypath(bindingText) && (keypath = keypathForKey(node, bindingText))) {
         if (keypath[0] === '$root') {
-          return function($context, $root) {
-            return getValue($root, keypath);
-          };
-        } else {
-          return function($context, $root) {
-            return getValue($context, keypath);
-          };
+          useRoot = true;
         }
+        return function($context, $root) {
+          var value;
+          if (useRoot) {
+            $context = $root;
+          }
+          value = getValue($context, keypath);
+          if (typeof value === 'function') {
+            return value(node, event);
+          }
+          return value;
+        };
       } else {
-        code = "return " + code;
+        code = "return " + bindingText;
         if (nodeArrayIndexes(node)) {
           code = "with($arrayPointers) { " + code + " }";
         }
@@ -431,7 +440,7 @@
         lastValue = void 0;
         teardown = void 0;
         checkedValueType = node.getAttribute('type') === 'radio';
-        fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
+        fn = bindingFunction(definition, '$context,$root,$arrayPointers', node);
         refresh = function() {
           var newValue;
           newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context));
@@ -487,9 +496,38 @@
           teardown: teardown
         };
       },
+      controller: function(node, context, name) {
+        var controller, controllerId, e, error, props, propsJSON, ref, ref1;
+        controllerId = (name.replace(/\./g, '_')) + " _" + Twine.count;
+        if (registry[name] !== null) {
+          props = {};
+          propsJSON = node.getAttribute('data-props');
+          if (propsJSON && propsJSON.length > 0) {
+            try {
+              propsJSON.replace('\\"', "\"");
+              propsJSON.replace('\'', "\"");
+              props = JSON.parse(propsJSON);
+            } catch (error) {
+              e = error;
+              throw new Error("Retwine binding error: props " + propsJSON + " on " + node + " not valid json");
+            }
+          } else {
+            props = {};
+          }
+          controller = new registry[name](node, props, context);
+          context[controllerId] = controller;
+          node.setAttribute('data-context', controllerId);
+          return {
+            refresh: ((ref = controller.refresh) != null ? ref.bind(controller) : void 0) || noOp,
+            teardown: ((ref1 = controller.teardown) != null ? ref1.bind(controller) : void 0) || noOp
+          };
+        } else {
+          throw new Error('Controller not registered');
+        }
+      },
       'bind-show': function(node, context, definition) {
         var fn, lastValue;
-        fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
+        fn = bindingFunction(definition, '$context,$root,$arrayPointers', node);
         lastValue = void 0;
         return {
           refresh: function() {
@@ -504,7 +542,7 @@
       },
       'bind-class': function(node, context, definition) {
         var fn, lastValue;
-        fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
+        fn = bindingFunction(definition, '$context,$root,$arrayPointers', node);
         lastValue = {};
         return {
           refresh: function() {
@@ -522,7 +560,7 @@
       },
       'bind-attribute': function(node, context, definition) {
         var fn, lastValue;
-        fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
+        fn = bindingFunction(definition, '$context,$root,$arrayPointers', node);
         lastValue = {};
         return {
           refresh: function() {
@@ -547,7 +585,7 @@
       },
       define: function(node, context, definition) {
         var fn, key, object, value;
-        fn = wrapFunctionString(definition, '$context,$root,$registry,$arrayPointers', node);
+        fn = bindingFunction(definition, '$context,$root,$registry,$arrayPointers', node);
         object = fn.call(node, context, rootContext, registry, arrayPointersForNode(node, context));
         for (key in object) {
           value = object[key];
@@ -556,13 +594,13 @@
       },
       "eval": function(node, context, definition) {
         var fn;
-        fn = wrapFunctionString(definition, '$context,$root,$registry,$arrayPointers', node);
+        fn = bindingFunction(definition, '$context,$root,$registry,$arrayPointers', node);
         fn.call(node, context, rootContext, registry, arrayPointersForNode(node, context));
       }
     };
     defineArray = function(node, context, definition) {
       var fn, indexes, key, object, value;
-      fn = wrapFunctionString(definition, '$context,$root', node);
+      fn = bindingFunction(definition, '$context,$root', node);
       object = fn.call(node, context, rootContext);
       indexes = {};
       for (key in object) {
@@ -583,7 +621,7 @@
       booleanProp = attributeName === 'checked' || attributeName === 'indeterminate' || attributeName === 'disabled' || attributeName === 'readOnly';
       return Twine.bindingTypes["bind-" + (bindingName.toLowerCase())] = function(node, context, definition) {
         var fn, lastValue;
-        fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
+        fn = bindingFunction(definition, '$context,$root,$arrayPointers', node);
         lastValue = void 0;
         return {
           refresh: function() {
@@ -625,7 +663,7 @@
           if (discardEvent) {
             return;
           }
-          wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data);
+          bindingFunction(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data);
           return Twine.refreshImmediately();
         };
         $(node).on(eventName, onEventHandler);

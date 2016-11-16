@@ -7,7 +7,10 @@
     root.Twine = factory()
 )(this, ->
   Twine = {}
+
   Twine.shouldDiscardEvent = {}
+
+  noOp = () -> undefined
 
   # Map of node binding ids to objects that describe a node's bindings.
   elements = {}
@@ -146,6 +149,7 @@
       throw new Error("Twine error: '#{name}' is already registered with Twine")
     else
       registry[name] = component
+    return Twine
 
   # Force the binding system to recognize programmatic changes to a node's value.
   Twine.change = (node, bubble = false) ->
@@ -250,14 +254,16 @@
   stringifyNodeAttributes = (node) ->
     [].map.call(node.attributes, (attr) -> "#{attr.name}=#{JSON.stringify(attr.value)}").join(' ')
 
-  wrapFunctionString = (code, args, node) ->
-    if isKeypath(code) && keypath = keypathForKey(node, code)
-      if keypath[0] == '$root'
-        ($context, $root) -> getValue($root, keypath)
-      else
-        ($context, $root) -> getValue($context, keypath)
+  bindingFunction = (bindingText, args, node) ->
+    if isKeypath(bindingText) && keypath = keypathForKey(node, bindingText)
+      useRoot = true if keypath[0] == '$root'
+      ($context, $root) ->
+        $context = $root if useRoot
+        value = getValue($context, keypath)
+        return value(node, event) if typeof value == 'function'
+        value
     else
-      code = "return #{code}"
+      code = "return #{bindingText}"
       code = "with($arrayPointers) { #{code} }" if nodeArrayIndexes(node)
       code = "with($registry) { #{code} }" if requiresRegistry(args)
       try
@@ -303,7 +309,7 @@
 
       # Radio buttons only set the value to the node value if checked.
       checkedValueType = node.getAttribute('type') == 'radio'
-      fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
+      fn = bindingFunction(definition, '$context,$root,$arrayPointers', node)
 
       refresh = ->
         newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
@@ -345,49 +351,79 @@
 
       {refresh, teardown}
 
+    controller: (node, context, name) ->
+      controllerId = "#{name.replace(/\./g, '_')} _#{Twine.count}";
+
+      if registry[name] != null
+        props = {}
+        propsJSON = node.getAttribute('data-props')
+        if propsJSON && propsJSON.length > 0
+          try
+            #Do it better
+            propsJSON.replace('\\"', "\"")
+            propsJSON.replace('\'', "\"");
+            props = JSON.parse(propsJSON);
+          catch e
+            throw new Error("Twine binding error: props #{propsJSON} on #{node} not valid json");
+        else
+          props = {}
+
+
+        controller = new registry[name](node, props, context);
+        context[controllerId] = controller;
+        node.setAttribute('data-context', controllerId);
+
+        return {
+          refresh: controller.refresh?.bind(controller) || noOp
+          teardown: controller.teardown?.bind(controller) || noOp
+        }
+      else
+        throw new Error('Controller not registered')
+
     'bind-show': (node, context, definition) ->
-      fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
+      fn = bindingFunction(definition, '$context,$root,$arrayPointers', node)
       lastValue = undefined
       return refresh: ->
-        newValue = !fn.call(node, context, rootContext, arrayPointersForNode(node, context))
-        return if newValue == lastValue
-        node.classList.toggle('hide', lastValue = newValue)
+          newValue = !fn.call(node, context, rootContext, arrayPointersForNode(node, context))
+          return if newValue == lastValue
+          node.classList.toggle('hide', lastValue = newValue)
 
     'bind-class': (node, context, definition) ->
-      fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
+      fn = bindingFunction(definition, '$context,$root,$arrayPointers', node)
       lastValue = {}
       return refresh: ->
-        newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
-        for key, value of newValue when !lastValue[key] != !value
-          node.classList.toggle(key, !!value)
-        lastValue = newValue
+          newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
+          for key, value of newValue when !lastValue[key] != !value
+            node.classList.toggle(key, !!value)
+          lastValue = newValue
 
     'bind-attribute': (node, context, definition) ->
-      fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
+      fn = bindingFunction(definition, '$context,$root,$arrayPointers', node)
       lastValue = {}
       return refresh: ->
-        newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
-        for key, value of newValue when lastValue[key] != value
-          if value
-            value = value() if typeof value == 'function'
-            node.setAttribute(key, value)
-          else
-            node.removeAttribute(key)
-        lastValue = newValue
+          newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
+          for key, value of newValue when lastValue[key] != value
+            if value
+              value = value() if typeof value == 'function'
+              node.setAttribute(key, value)
+            else
+              node.removeAttribute(key)
+          lastValue = newValue
 
     define: (node, context, definition) ->
-      fn = wrapFunctionString(definition, '$context,$root,$registry,$arrayPointers', node)
+      fn = bindingFunction(definition, '$context,$root,$registry,$arrayPointers', node)
       object = fn.call(node, context, rootContext, registry, arrayPointersForNode(node, context))
       context[key] = value for key, value of object
       return
 
     eval: (node, context, definition) ->
-      fn = wrapFunctionString(definition, '$context,$root,$registry,$arrayPointers', node)
+      fn = bindingFunction(definition, '$context,$root,$registry,$arrayPointers', node)
+
       fn.call(node, context, rootContext, registry, arrayPointersForNode(node, context))
       return
 
   defineArray = (node, context, definition) ->
-    fn = wrapFunctionString(definition, '$context,$root', node)
+    fn = bindingFunction(definition, '$context,$root', node)
     object = fn.call(node, context, rootContext)
 
     indexes = {}
@@ -405,7 +441,7 @@
     booleanProp = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly']
 
     Twine.bindingTypes["bind-#{bindingName.toLowerCase()}"] = (node, context, definition) ->
-      fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
+      fn = bindingFunction(definition, '$context,$root,$arrayPointers', node)
       lastValue = undefined
       return refresh: ->
         newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
@@ -433,7 +469,7 @@
 
         return if discardEvent
 
-        wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data)
+        bindingFunction(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data)
         Twine.refreshImmediately()
       $(node).on eventName, onEventHandler
 
