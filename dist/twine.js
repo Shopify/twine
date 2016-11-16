@@ -512,8 +512,8 @@
               newValue = JSON.parse(value);
             } catch (error) {
               e = error;
+              newValue = value;
             }
-            newValue = value;
             props[nameWithoutProp[0].toLowerCase() + nameWithoutProp.slice(1)] = newValue;
           }
           controller = new registry[name](node, props, context);

@@ -363,7 +363,7 @@
             newValue = JSON.parse(value);
           catch e
             # if it isnt valid json just pass it is probably meant to be a string literal
-          newValue = value
+            newValue = value
           props[nameWithoutProp[0].toLowerCase() + nameWithoutProp.slice(1)] = newValue
 
         controller = new registry[name](node, props, context);
