@@ -497,16 +497,24 @@
         };
       },
       controller: function(node, context, name) {
-        var controller, controllerId, key, props, ref, ref1, ref2, value;
+        var controller, controllerId, e, error, key, nameWithoutProp, newValue, props, ref, ref1, ref2, value;
         controllerId = (name.replace(/\./g, '_')) + " _" + Twine.count;
         if (registry[name] !== null) {
           props = {};
           ref = node.dataset;
           for (key in ref) {
             value = ref[key];
-            if (value.indexOf('prop') >= 0) {
-              props[key.replace('prop', '')] = value;
+            if (!(key.indexOf('prop') >= 0)) {
+              continue;
             }
+            nameWithoutProp = key.slice(4);
+            try {
+              newValue = JSON.parse(value);
+            } catch (error) {
+              e = error;
+            }
+            newValue = value;
+            props[nameWithoutProp[0].toLowerCase() + nameWithoutProp.slice(1)] = newValue;
           }
           controller = new registry[name](node, props, context);
           context[controllerId] = controller;

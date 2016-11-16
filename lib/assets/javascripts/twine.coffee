@@ -356,8 +356,15 @@
 
       if registry[name] != null
         props = {}
-        for key, value of node.dataset when value.indexOf('prop') >= 0
-          props[key.replace('prop', '')] = value
+
+        for key, value of node.dataset when key.indexOf('prop') >= 0
+          nameWithoutProp = key.slice(4)
+          try
+            newValue = JSON.parse(value);
+          catch e
+            # if it isnt valid json just pass it is probably meant to be a string literal
+          newValue = value
+          props[nameWithoutProp[0].toLowerCase() + nameWithoutProp.slice(1)] = newValue
 
         controller = new registry[name](node, props, context);
         context[controllerId] = controller;
