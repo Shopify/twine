@@ -10,7 +10,7 @@
       return root.Twine = factory();
     }
   })(this, function() {
-    var Twine, arrayPointersForNode, attribute, bind, bindingFunction, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, noOp, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode;
+    var Twine, arrayPointersForNode, attribute, bind, bindingFunction, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getPropsFor, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, noOp, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, templateRegex, valuePropertyForNode;
     Twine = {};
     Twine.shouldDiscardEvent = {};
     noOp = function() {
@@ -21,6 +21,7 @@
     nodeCount = 0;
     rootContext = null;
     keypathRegex = /^[a-z]\w*(\.[a-z]\w*|\[\d+\])*$/i;
+    templateRegex = /^\[\[(.*)\]\]$/;
     refreshQueued = false;
     rootNode = null;
     currentBindingCallbacks = null;
@@ -496,32 +497,32 @@
           teardown: teardown
         };
       },
+      service: function(node, context, name) {
+        var service;
+        if (registry[name] !== null) {
+          service = registry[name];
+          context[name] = service;
+        } else {
+          throw new Error('Service not registered');
+        }
+      },
       controller: function(node, context, name) {
-        var controller, controllerId, e, error, key, nameWithoutProp, newValue, props, ref, ref1, ref2, value;
+        var controller, controllerId, ref;
         controllerId = (name.replace(/\./g, '_')) + " _" + Twine.count;
         if (registry[name] !== null) {
-          props = {};
-          ref = node.dataset;
-          for (key in ref) {
-            value = ref[key];
-            if (!(key.indexOf('prop') >= 0)) {
-              continue;
-            }
-            nameWithoutProp = key.slice(4);
-            try {
-              newValue = JSON.parse(value);
-            } catch (error) {
-              e = error;
-              newValue = value;
-            }
-            props[nameWithoutProp[0].toLowerCase() + nameWithoutProp.slice(1)] = newValue;
-          }
-          controller = new registry[name](node, props, context);
+          controller = new registry[name](node, getPropsFor(node, context), context);
           context[controllerId] = controller;
           node.setAttribute('data-context', controllerId);
           return {
-            refresh: ((ref1 = controller.refresh) != null ? ref1.bind(controller) : void 0) || noOp,
-            teardown: ((ref2 = controller.teardown) != null ? ref2.bind(controller) : void 0) || noOp
+            refresh: function() {
+              var oldProps;
+              if (!controller.refresh) {
+                return noOp;
+              }
+              oldProps = controller.props;
+              return controller.refresh(oldProps, getPropsFor(controller.node, controller._context));
+            },
+            teardown: ((ref = controller.teardown) != null ? ref.bind(controller) : void 0) || noOp
           };
         } else {
           throw new Error('Controller not registered');
@@ -619,6 +620,31 @@
         context[key].push(value);
       }
       return indexes;
+    };
+    getPropsFor = function(node, context) {
+      var e, error, key, keypath, match, nameWithoutProp, newValue, props, ref, value;
+      props = {};
+      ref = node.dataset;
+      for (key in ref) {
+        value = ref[key];
+        if (!(key.indexOf('prop') >= 0)) {
+          continue;
+        }
+        nameWithoutProp = key.slice(4);
+        try {
+          newValue = JSON.parse(value);
+        } catch (error) {
+          e = error;
+          match = value.match(templateRegex);
+        }
+        if (match && isKeypath(match[1]) && (keypath = keypathForKey(node, match[1]))) {
+          newValue = getValue(context, keypath);
+        } else {
+          newValue = value;
+        }
+        props[nameWithoutProp[0].toLowerCase() + nameWithoutProp.slice(1)] = newValue;
+      }
+      return props;
     };
     setupPropertyBinding = function(attributeName, bindingName) {
       var booleanProp;

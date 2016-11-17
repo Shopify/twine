@@ -26,6 +26,8 @@
   rootContext = null
 
   keypathRegex = /^[a-z]\w*(\.[a-z]\w*|\[\d+\])*$/i # Tests if a string is a pure keypath.
+  templateRegex = /^\[\[(.*)\]\]$/
+
   refreshQueued = false
   rootNode = null
 
@@ -351,27 +353,27 @@
 
       {refresh, teardown}
 
+    service: (node, context, name) ->
+      if registry[name] != null
+        service = registry[name]
+        context[name] = service;
+        return
+      else
+        throw new Error('Service not registered')
+
     controller: (node, context, name) ->
       controllerId = "#{name.replace(/\./g, '_')} _#{Twine.count}";
 
       if registry[name] != null
-        props = {}
-
-        for key, value of node.dataset when key.indexOf('prop') >= 0
-          nameWithoutProp = key.slice(4)
-          try
-            newValue = JSON.parse(value);
-          catch e
-            # if it isnt valid json just pass it is probably meant to be a string literal
-            newValue = value
-          props[nameWithoutProp[0].toLowerCase() + nameWithoutProp.slice(1)] = newValue
-
-        controller = new registry[name](node, props, context);
+        controller = new registry[name](node, getPropsFor(node, context), context);
         context[controllerId] = controller;
         node.setAttribute('data-context', controllerId);
 
         return {
-          refresh: controller.refresh?.bind(controller) || noOp
+          refresh: ->
+            return noOp if !controller.refresh
+            oldProps = controller.props
+            controller.refresh(oldProps, getPropsFor(controller.node, controller._context))
           teardown: controller.teardown?.bind(controller) || noOp
         }
       else
@@ -395,7 +397,6 @@
         for key, value of newValue when !lastValue[key] != !value
           $node.toggleClass(key, !!value)
         lastValue = newValue
-
 
     'bind-attribute': (node, context, definition) ->
       fn = bindingFunction(definition, '$context,$root,$arrayPointers', node)
@@ -436,6 +437,21 @@
       context[key].push(value)
 
     indexes
+
+  getPropsFor = (node, context) ->
+    props = {}
+    for key, value of node.dataset when key.indexOf('prop') >= 0
+      nameWithoutProp = key.slice(4)
+      try
+        newValue = JSON.parse(value);
+      catch e
+      	match = value.match(templateRegex)
+      if match && isKeypath(match[1]) && keypath = keypathForKey(node, match[1])
+        newValue = getValue(context, keypath)
+      else
+        newValue = value
+      props[nameWithoutProp[0].toLowerCase() + nameWithoutProp.slice(1)] = newValue
+    props
 
   setupPropertyBinding = (attributeName, bindingName) ->
     booleanProp = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly']
