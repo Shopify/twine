@@ -26,7 +26,6 @@
   rootContext = null
 
   keypathRegex = /^[a-z]\w*(\.[a-z]\w*|\[\d+\])*$/i # Tests if a string is a pure keypath.
-  templateRegex = /^\[\[(.*)\]\]$/
 
   refreshQueued = false
   rootNode = null
@@ -144,6 +143,9 @@
   Twine.refreshImmediately = ->
     refreshQueued = false
     refreshElement(element) for key, element of elements
+    event = document.createEvent("HTMLEvents")
+    event.initEvent('Twine:refresh:complete', false, true) # for IE 9/10 compatibility.
+    document.dispatchEvent(event)
     return
 
   Twine.register = (name, component) ->
@@ -374,7 +376,7 @@
             return noOp if !controller.refresh
             oldProps = controller.props
             controller.refresh(oldProps, getPropsFor(controller.node, controller._context))
-          teardown: controller.teardown?.bind(controller) || noOp
+          teardown: controller._teardown?.bind(controller) || noOp
         }
       else
         throw new Error('Controller not registered')
@@ -438,20 +440,34 @@
 
     indexes
 
+  lowerCaseFirst = (string) ->
+    string[0].toLowerCase() + string.slice(1);
+
   getPropsFor = (node, context) ->
     props = {}
-    for key, value of node.dataset when key.indexOf('prop') >= 0
-      nameWithoutProp = key.slice(4)
-      try
-        newValue = JSON.parse(value);
-      catch e
-      	match = value.match(templateRegex)
-      if match && isKeypath(match[1]) && keypath = keypathForKey(node, match[1])
-        newValue = getValue(context, keypath)
-      else
-        newValue = value
-      props[nameWithoutProp[0].toLowerCase() + nameWithoutProp.slice(1)] = newValue
+    for key, value of node.dataset
+      propPosition = key.toLowerCase().indexOf('prop')
+      if propPosition == -1
+        continue
+      if key.indexOf('pass') == 0
+        propName = key.slice('passProp'.length)
+        propValue = getDerivedProp(node, context, value)
+      else if propPosition == 0
+        propName = key.slice('prop'.length)
+        propValue = getLiteralProp(value)
+      props[lowerCaseFirst(propName)] = propValue
     props
+
+  getDerivedProp = (node, context, definition) ->
+    if isKeypath(definition) && keypath = keypathForKey(node, definition)
+      return getValue(context, keypath)
+    throw new Error("No value could be found in the context for keypath #{definition}")
+
+  getLiteralProp = (definition) ->
+    try
+      return JSON.parse(definition)
+    catch e
+      return definition
 
   setupPropertyBinding = (attributeName, bindingName) ->
     booleanProp = attributeName in ['checked', 'indeterminate', 'disabled', 'readOnly']

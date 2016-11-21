@@ -10,7 +10,7 @@
       return root.Twine = factory();
     }
   })(this, function() {
-    var Twine, arrayPointersForNode, attribute, bind, bindingFunction, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getPropsFor, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, noOp, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, templateRegex, valuePropertyForNode;
+    var Twine, arrayPointersForNode, attribute, bind, bindingFunction, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getDerivedProp, getIndexesForElement, getLiteralProp, getPropsFor, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, lowerCaseFirst, noOp, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode;
     Twine = {};
     Twine.shouldDiscardEvent = {};
     noOp = function() {
@@ -21,7 +21,6 @@
     nodeCount = 0;
     rootContext = null;
     keypathRegex = /^[a-z]\w*(\.[a-z]\w*|\[\d+\])*$/i;
-    templateRegex = /^\[\[(.*)\]\]$/;
     refreshQueued = false;
     rootNode = null;
     currentBindingCallbacks = null;
@@ -188,12 +187,15 @@
       }
     };
     Twine.refreshImmediately = function() {
-      var element, key;
+      var element, event, key;
       refreshQueued = false;
       for (key in elements) {
         element = elements[key];
         refreshElement(element);
       }
+      event = document.createEvent("HTMLEvents");
+      event.initEvent('Twine:refresh:complete', false, true);
+      document.dispatchEvent(event);
     };
     Twine.register = function(name, component) {
       if (registry[name]) {
@@ -522,7 +524,7 @@
               oldProps = controller.props;
               return controller.refresh(oldProps, getPropsFor(controller.node, controller._context));
             },
-            teardown: ((ref = controller.teardown) != null ? ref.bind(controller) : void 0) || noOp
+            teardown: ((ref = controller._teardown) != null ? ref.bind(controller) : void 0) || noOp
           };
         } else {
           throw new Error('Controller not registered');
@@ -621,30 +623,45 @@
       }
       return indexes;
     };
+    lowerCaseFirst = function(string) {
+      return string[0].toLowerCase() + string.slice(1);
+    };
     getPropsFor = function(node, context) {
-      var e, error, key, keypath, match, nameWithoutProp, newValue, props, ref, value;
+      var key, propName, propPosition, propValue, props, ref, value;
       props = {};
       ref = node.dataset;
       for (key in ref) {
         value = ref[key];
-        if (!(key.indexOf('prop') >= 0)) {
+        propPosition = key.toLowerCase().indexOf('prop');
+        if (propPosition === -1) {
           continue;
         }
-        nameWithoutProp = key.slice(4);
-        try {
-          newValue = JSON.parse(value);
-        } catch (error) {
-          e = error;
-          match = value.match(templateRegex);
+        if (key.indexOf('pass') === 0) {
+          propName = key.slice('passProp'.length);
+          propValue = getDerivedProp(node, context, value);
+        } else if (propPosition === 0) {
+          propName = key.slice('prop'.length);
+          propValue = getLiteralProp(value);
         }
-        if (match && isKeypath(match[1]) && (keypath = keypathForKey(node, match[1]))) {
-          newValue = getValue(context, keypath);
-        } else {
-          newValue = value;
-        }
-        props[nameWithoutProp[0].toLowerCase() + nameWithoutProp.slice(1)] = newValue;
+        props[lowerCaseFirst(propName)] = propValue;
       }
       return props;
+    };
+    getDerivedProp = function(node, context, definition) {
+      var keypath;
+      if (isKeypath(definition) && (keypath = keypathForKey(node, definition))) {
+        return getValue(context, keypath);
+      }
+      throw new Error("No value could be found in the context for keypath " + definition);
+    };
+    getLiteralProp = function(definition) {
+      var e, error;
+      try {
+        return JSON.parse(definition);
+      } catch (error) {
+        e = error;
+        return definition;
+      }
     };
     setupPropertyBinding = function(attributeName, bindingName) {
       var booleanProp;
