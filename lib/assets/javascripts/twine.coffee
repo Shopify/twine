@@ -367,15 +367,17 @@
       controllerId = "#{name.replace(/\./g, '_')} _#{Twine.count}";
 
       if registry[name] != null
-        controller = new registry[name](node, getPropsFor(node, context), context);
+        props = getPropsFor(node, context)
+        controller = new registry[name](node, props, context);
         context[controllerId] = controller;
         node.setAttribute('data-context', controllerId);
 
         return {
           refresh: ->
             return noOp if !controller.refresh
-            oldProps = controller.props
-            controller.refresh(oldProps, getPropsFor(controller.node, controller._context))
+            oldProps = props
+            props = getPropsFor(node, context)
+            controller.refresh(oldProps, props)
           teardown: controller._teardown?.bind(controller) || noOp
         }
       else

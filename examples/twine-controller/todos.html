@@ -1,0 +1,34 @@
+<div data-controller="Todos">
+  <h2>Todos</h2>
+  <ul data-controller="Iterator"
+      data-prop-collection="[[pendingTodos]]">
+      This will show until the first attempt to get from the client lol
+    <script data-iterator-empty-template type="text/template">
+      <p>
+        No todos, why not add one?
+      <p>
+    </script>
+    <script data-iterator-template type="text/template">
+      <li data-controller="Todo" data-prop-index="{{$index}}" data-prop-id="{{id}}">
+        {{text}}
+        <button data-bind-event-click="done" id="button-{{$index}}">
+          Done!
+        </button>
+      </li>
+    </script>
+  </ul>
+  <ul data-controller="Iterator"
+      data-prop-collection="[[doneTodos]]">
+    <script data-iterator-template type="text/template">
+      <li>
+        <small><italic>{{text}}</small></italics>
+      </li>
+    </script>
+  </ul>
+  <div data-controller="TodoForm">
+    <input data-bind="text">
+    <button data-bind-event-click="submit">
+      new Todo
+    </button>
+  </div>
+</div>
