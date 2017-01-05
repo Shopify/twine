@@ -522,7 +522,11 @@
             if (newValue === lastValue) {
               return;
             }
-            return $(node).toggleClass('hide', lastValue = newValue);
+            if (lastValue = newValue) {
+              return node.classList.add('hide');
+            } else {
+              return node.classList.remove('hide');
+            }
           }
         };
       },
