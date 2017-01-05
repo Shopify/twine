@@ -253,6 +253,19 @@ suite "Twine", ->
       node = setupView(testView, key: true)
       assert.equal node.className, ""
 
+    test 'should toggle class on change', ->
+      testView = '<div data-bind-show="key"></div>'
+      node = setupView(testView, context = key: true)
+      assert.equal node.className, ''
+
+      context.key = false
+      Twine.refreshImmediately()
+      assert.equal node.className, 'hide'
+
+      context.key = true
+      Twine.refreshImmediately()
+      assert.equal node.className, ''
+
   suite "data-bind-class attribute", ->
     test "should apply the given classes when truthy", ->
       testView = "<div data-bind-class=\"{cls: key, cls2: false}\"></div>"
@@ -1195,6 +1208,19 @@ suite "TwineLegacy", ->
       testView = "<div bind-show=\"true\"></div>"
       node = setupView(testView, key: true)
       assert.equal node.className, ""
+
+    test 'should toggle class on change', ->
+      testView = '<div bind-show="key"></div>'
+      node = setupView(testView, context = key: true)
+      assert.equal node.className, ''
+
+      context.key = false
+      Twine.refreshImmediately()
+      assert.equal node.className, 'hide'
+
+      context.key = true
+      Twine.refreshImmediately()
+      assert.equal node.className, ''
 
   suite "bind-class attribute", ->
     test "should apply the given classes when truthy", ->

@@ -523,7 +523,9 @@
               return;
             }
             if (lastValue = newValue) {
-              return node.classList.toggle('hide');
+              return node.classList.add('hide');
+            } else {
+              return node.classList.remove('hide');
             }
           }
         };
