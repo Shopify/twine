@@ -501,9 +501,9 @@
             refreshContext();
             return Twine.refreshImmediately();
           };
-          $(node).on('input keyup change', changeHandler);
+          jQuery(node).on('input keyup change', changeHandler);
           teardown = function() {
-            return $(node).off('input keyup change', changeHandler);
+            return jQuery(node).off('input keyup change', changeHandler);
           };
         }
         return {
@@ -522,7 +522,7 @@
             if (newValue === lastValue) {
               return;
             }
-            return $(node).toggleClass('hide', lastValue = newValue);
+            return jQuery(node).toggleClass('hide', lastValue = newValue);
           }
         };
       },
@@ -530,7 +530,7 @@
         var $node, fn, lastValues;
         fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
         lastValues = {};
-        $node = $(node);
+        $node = jQuery(node);
         return {
           refresh: function() {
             var additions, currValue, key, newValue, newValues, ref, removals, value;
@@ -570,7 +570,7 @@
             for (key in newValue) {
               value = newValue[key];
               if (lastValue[key] !== value) {
-                $(node).attr(key, value || null);
+                jQuery(node).attr(key, value || null);
               }
             }
             return lastValue = newValue;
@@ -660,10 +660,10 @@
           wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data);
           return Twine.refreshImmediately();
         };
-        $(node).on(eventName, onEventHandler);
+        jQuery(node).on(eventName, onEventHandler);
         return {
           teardown: function() {
-            return $(node).off(eventName, onEventHandler);
+            return jQuery(node).off(eventName, onEventHandler);
           }
         };
       };
