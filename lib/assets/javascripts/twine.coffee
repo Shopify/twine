@@ -354,9 +354,9 @@
           return if getValue(context, keypath) == this[valueProp]
           refreshContext()
           Twine.refreshImmediately()
-        $(node).on 'input keyup change', changeHandler
+        jQuery(node).on 'input keyup change', changeHandler
         teardown = ->
-          $(node).off 'input keyup change', changeHandler
+          jQuery(node).off 'input keyup change', changeHandler
 
       {refresh, teardown}
 
@@ -366,12 +366,12 @@
       return refresh: ->
         newValue = !fn.call(node, context, rootContext, arrayPointersForNode(node, context))
         return if newValue == lastValue
-        $(node).toggleClass('hide', lastValue = newValue)
+        jQuery(node).toggleClass('hide', lastValue = newValue)
 
     'bind-class': (node, context, definition) ->
       fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
       lastValues = {}
-      $node = $(node)
+      $node = jQuery(node)
       return refresh: ->
         newValues = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
         additions = []
@@ -396,7 +396,7 @@
       return refresh: ->
         newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
         for key, value of newValue when lastValue[key] != value
-          $(node).attr(key, value || null)
+          jQuery(node).attr(key, value || null)
         lastValue = newValue
 
     define: (node, context, definition) ->
@@ -459,10 +459,10 @@
 
         wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data)
         Twine.refreshImmediately()
-      $(node).on eventName, onEventHandler
+      jQuery(node).on eventName, onEventHandler
 
       return teardown: ->
-        $(node).off eventName, onEventHandler
+        jQuery(node).off eventName, onEventHandler
 
   for eventName in ['click', 'dblclick', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'mousedown', 'mouseup',
     'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input',
