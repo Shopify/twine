@@ -257,9 +257,20 @@
   wrapFunctionString = (code, args, node) ->
     if isKeypath(code) && keypath = keypathForKey(node, code)
       if keypath[0] == '$root'
-        ($context, $root) -> getValue($root, keypath)
+        ($context, $root, arrayIndexes, event) ->
+          value = getValue($root, keypath)
+          if typeof value == 'function'
+            value(node, event)
+          else
+            value
       else
-        ($context, $root) -> getValue($context, keypath)
+        ($context, $root, arrayIndexes, event) ->
+          value = getValue($context, keypath)
+          if typeof value == 'function'
+            value(node, event)
+          else
+            value
+
     else
       code = "return #{code}"
       code = "with($arrayPointers) { #{code} }" if nodeArrayIndexes(node)
@@ -457,7 +468,9 @@
 
         return if discardEvent
 
-        wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data)
+        wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node)
+          .call(node, context, rootContext, arrayPointersForNode(node, context), event, data)
+
         Twine.refreshImmediately()
       jQuery(node).on eventName, onEventHandler
 

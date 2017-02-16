@@ -374,12 +374,24 @@
       var e, error, keypath;
       if (isKeypath(code) && (keypath = keypathForKey(node, code))) {
         if (keypath[0] === '$root') {
-          return function($context, $root) {
-            return getValue($root, keypath);
+          return function($context, $root, arrayIndexes, event) {
+            var value;
+            value = getValue($root, keypath);
+            if (typeof value === 'function') {
+              return value(node, event);
+            } else {
+              return value;
+            }
           };
         } else {
-          return function($context, $root) {
-            return getValue($context, keypath);
+          return function($context, $root, arrayIndexes, event) {
+            var value;
+            value = getValue($context, keypath);
+            if (typeof value === 'function') {
+              return value(node, event);
+            } else {
+              return value;
+            }
           };
         }
       } else {
@@ -649,7 +661,7 @@
       return Twine.bindingTypes["bind-event-" + eventName] = function(node, context, definition) {
         var onEventHandler;
         onEventHandler = function(event, data) {
-          var base, discardEvent;
+          var base, discardEvent, fn;
           discardEvent = typeof (base = Twine.shouldDiscardEvent)[eventName] === "function" ? base[eventName](event) : void 0;
           if (discardEvent || preventDefaultForEvent(event)) {
             event.preventDefault();
@@ -657,7 +669,8 @@
           if (discardEvent) {
             return;
           }
-          wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data);
+          fn = wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node);
+          fn.call(node, context, rootContext, arrayPointersForNode(node, context), event, data);
           return Twine.refreshImmediately();
         };
         jQuery(node).on(eventName, onEventHandler);
