@@ -1,3 +1,5 @@
+jQuery = require('jquery')
+
 window.expect = chai.expect
 window.assert = chai.assert
 window.spy = sinon.spy
@@ -16,7 +18,7 @@ setup ->
   sandbox.xhrAssertions = 0
 
 window.nodeMatcher = (expectedNode) ->
-  expectedNode = $(expectedNode)[0]
+  expectedNode = jQuery(expectedNode)[0]
   sinon.match (node) ->
     expectedNode.isEqualNode(node)
 

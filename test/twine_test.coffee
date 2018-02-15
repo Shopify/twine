@@ -1,3 +1,4 @@
+jQuery = require('jquery')
 Twine = require('../dist/twine')
 
 suite "Twine", ->

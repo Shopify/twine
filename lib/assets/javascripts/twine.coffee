@@ -1,11 +1,15 @@
 ((root, factory) ->
   if typeof root.define == 'function' && root.define.amd
-    root.define([], factory)
+    root.define(['jquery'], factory)
   else if typeof module == 'object' && module.exports
-    module.exports = factory()
+    jQuery = if typeof window != 'undefined'
+    then require('jquery')
+    else require('jquery')(root)
+
+    module.exports = factory(jQuery)
   else
-    root.Twine = factory()
-)(this, ->
+    root.Twine = factory(root.jQuery)
+)(this, (jQuery) ->
   Twine = {}
   Twine.shouldDiscardEvent = {}
 
