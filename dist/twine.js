@@ -2,14 +2,16 @@
   var slice = [].slice;
 
   (function(root, factory) {
+    var jQuery;
     if (typeof root.define === 'function' && root.define.amd) {
-      return root.define([], factory);
+      return root.define(['jquery'], factory);
     } else if (typeof module === 'object' && module.exports) {
-      return module.exports = factory();
+      jQuery = typeof window !== 'undefined' ? require('jquery') : require('jquery')(root);
+      return module.exports = factory(jQuery);
     } else {
-      return root.Twine = factory();
+      return root.Twine = factory(root.jQuery);
     }
-  })(this, function() {
+  })(this, function(jQuery) {
     var Twine, arrayPointersForNode, attribute, bind, bindingOrder, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshCallbacks, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
     Twine = {};
     Twine.shouldDiscardEvent = {};
