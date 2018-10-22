@@ -944,6 +944,18 @@ suite "Twine", ->
 
     assert.equal Twine.contextKey(node.firstChild, context.inner.inner), 'inner.inner'
 
+  test "dynamically inserted nodes should not be traversed when they happen during bind", ->
+    context = {
+      insertSibling: (node) ->
+        el = document.createElement('div')
+        el.setAttribute('data-eval', 'spy()')
+        node.insertAdjacentElement('afterend', el)
+      spy: @spy()
+    }
+    testView = '<div><div data-eval="insertSibling(this)"></div><div></div></div>'
+    setupView(testView, context)
+    assert.isFalse context.spy.called
+
 suite "TwineLegacy", ->
   setupView = (html, context) ->
     rootNode.innerHTML = html
