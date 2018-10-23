@@ -12,7 +12,7 @@
       return root.Twine = factory(root.jQuery);
     }
   })(this, function(jQuery) {
-    var Twine, arrayPointersForNode, attribute, bind, bindingOrder, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshCallbacks, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
+    var Twine, arrayPointersForNode, attribute, bind, bindingOrder, childrenForNode, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshCallbacks, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
     Twine = {};
     Twine.shouldDiscardEvent = {};
     elements = {};
@@ -143,7 +143,7 @@
         }
       }
       callbacks = currentBindingCallbacks;
-      ref3 = node.children || [];
+      ref3 = childrenForNode(node);
       for (l = 0, len2 = ref3.length; l < len2; l++) {
         childNode = ref3[l];
         bind(context, childNode, newContextKey != null ? null : indexes);
@@ -156,6 +156,13 @@
       }
       currentBindingCallbacks = null;
       return Twine;
+    };
+    childrenForNode = function(node) {
+      if (node.children) {
+        return Array.prototype.slice.call(node.children, 0);
+      } else {
+        return [];
+      }
     };
     findOrCreateElementForNode = function(node) {
       var name1;
@@ -230,7 +237,7 @@
         delete elements[id];
         delete node.bindingId;
       }
-      ref1 = node.children || [];
+      ref1 = childrenForNode(node);
       for (k = 0, len1 = ref1.length; k < len1; k++) {
         childNode = ref1[k];
         Twine.unbind(childNode);

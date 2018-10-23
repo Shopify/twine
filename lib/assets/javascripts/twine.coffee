@@ -110,12 +110,9 @@
 
     callbacks = currentBindingCallbacks
 
-    # IE and Safari don't support node.children for DocumentFragment and SVGElement nodes.
-    # If the element supports children we continue to traverse the children, otherwise
-    # we stop traversing that subtree.
-    # https://developer.mozilla.org/en-US/docs/Web/API/ParentNode.children
-    # As a result, Twine are unsupported within DocumentFragment and SVGElement nodes.
-    bind(context, childNode, if newContextKey? then null else indexes) for childNode in (node.children || [])
+    # IE and Safari don't support node.children for DocumentFragment or SVGElement,
+    # See explanation in childrenForNode()
+    bind(context, childNode, if newContextKey? then null else indexes) for childNode in childrenForNode(node)
     Twine.count = nodeCount
 
     for callback in callbacks || []
@@ -123,6 +120,18 @@
     currentBindingCallbacks = null
 
     Twine
+
+  # IE and Safari don't support node.children for DocumentFragment and SVGElement nodes.
+  # If the element supports children we continue to traverse the children, otherwise
+  # we stop traversing that subtree.
+  # https://developer.mozilla.org/en-US/docs/Web/API/ParentNode.children
+  # As a result, Twine are unsupported within DocumentFragment and SVGElement nodes.
+  #
+  # We also prevent nodes from being iterated over more than once by cacheing the
+  # lookup for children nodes, which prevents nodes that are dynamically inserted
+  # or removed as siblings from causing double/ missed binds and unbinds.
+  childrenForNode = (node) ->
+    if node.children then Array::slice.call(node.children, 0) else []
 
   findOrCreateElementForNode = (node) ->
     node.bindingId ?= ++nodeCount
@@ -169,10 +178,9 @@
       delete elements[id]
       delete node.bindingId
 
-
     # IE and Safari don't support node.children for DocumentFragment or SVGElement,
-    # See explaination in bind()
-    Twine.unbind(childNode) for childNode in (node.children || [])
+    # See explanation in childrenForNode()
+    Twine.unbind(childNode) for childNode in childrenForNode(node)
     this
 
   # Returns the binding context for a node by looking up the tree.
