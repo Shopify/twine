@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    twine-rails (1.2.1)
+    twine-rails (1.2.2)
       coffee-rails
       railties
 
@@ -77,4 +77,4 @@ DEPENDENCIES
   twine-rails!
 
 BUNDLED WITH
-   1.16.0
+   1.16.6
