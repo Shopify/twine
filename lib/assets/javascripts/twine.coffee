@@ -127,11 +127,11 @@
   # https://developer.mozilla.org/en-US/docs/Web/API/ParentNode.children
   # As a result, Twine are unsupported within DocumentFragment and SVGElement nodes.
   #
-  # We also prevent nodes from being iterated over more than once by locking
-  # the children, which prevents nodes that are dynamically inserted as siblings
-  # from causing double/ missed binds and unbinds.
+  # We also prevent nodes from being iterated over more than once by cacheing the
+  # lookup for children nodes, which prevents nodes that are dynamically inserted
+  # or removed as siblings from causing double/ missed binds and unbinds.
   childrenForNode = (node) ->
-    if node.children then Array.prototype.slice.call(node.children, 0) else []
+    if node.children then Array::slice.call(node.children, 0) else []
 
   findOrCreateElementForNode = (node) ->
     node.bindingId ?= ++nodeCount
