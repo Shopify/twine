@@ -2,11 +2,11 @@ name: twine
 
 up:
   - node:
-      version: v6.11.1
+      version: v12.16.3
       packages:
         - .
   - ruby:
-      version: 2.3.1
+      version: 2.7.2
   - bundler
 
 
