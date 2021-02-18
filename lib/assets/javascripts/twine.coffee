@@ -457,14 +457,14 @@
 
   setupEventBinding = (eventName) ->
     Twine.bindingTypes["bind-event-#{eventName}"] = (node, context, definition) ->
-      onEventHandler = (event) ->
+      onEventHandler = (event, data = event.detail) ->
         discardEvent = Twine.shouldDiscardEvent[eventName]?(event)
         if discardEvent || preventDefaultForEvent(event)
           event.preventDefault()
 
         return if discardEvent
 
-        wrapFunctionString(definition, '$context,$root,$arrayPointers,event', node).call(node, context, rootContext, arrayPointersForNode(node, context), event)
+        wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data)
         Twine.refreshImmediately()
       node.addEventListener(eventName, onEventHandler)
 

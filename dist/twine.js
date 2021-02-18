@@ -660,8 +660,11 @@
     setupEventBinding = function(eventName) {
       return Twine.bindingTypes["bind-event-" + eventName] = function(node, context, definition) {
         var onEventHandler;
-        onEventHandler = function(event) {
+        onEventHandler = function(event, data) {
           var base, discardEvent;
+          if (data == null) {
+            data = event.detail;
+          }
           discardEvent = typeof (base = Twine.shouldDiscardEvent)[eventName] === "function" ? base[eventName](event) : void 0;
           if (discardEvent || preventDefaultForEvent(event)) {
             event.preventDefault();
@@ -669,7 +672,7 @@
           if (discardEvent) {
             return;
           }
-          wrapFunctionString(definition, '$context,$root,$arrayPointers,event', node).call(node, context, rootContext, arrayPointersForNode(node, context), event);
+          wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data);
           return Twine.refreshImmediately();
         };
         node.addEventListener(eventName, onEventHandler);

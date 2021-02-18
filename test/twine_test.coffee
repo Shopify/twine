@@ -355,9 +355,10 @@ suite "Twine", ->
     test "should pass along data if present", ->
       testView = "<form data-bind-event-submit=\"fn(data)\"></form>"
       data = {test: 'bla123'}
-      node = setupView(testView, context = {fn: @spy(), data: data})
+      node = setupView(testView, context = {fn: @spy()})
 
-      triggerEvent node, "submit"
+      event = new CustomEvent('submit', {detail: data})
+      node.dispatchEvent(event)
 
       assert.isTrue context.fn.calledOnce
       assert.isTrue context.fn.calledWith(data)
@@ -1281,9 +1282,10 @@ suite "TwineLegacy", ->
     test "should pass along data if present", ->
       testView = "<form bind-event-submit=\"fn(data)\"></form>"
       data = {test: 'bla123'}
-      node = setupView(testView, context = {fn: @spy(), data: data})
+      node = setupView(testView, context = {fn: @spy()})
 
-      triggerEvent node, "submit"
+      event = new CustomEvent('submit', {detail: data})
+      node.dispatchEvent(event)
 
       assert.isTrue context.fn.calledOnce
       assert.isTrue context.fn.calledWith(data)
