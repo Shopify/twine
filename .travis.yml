@@ -1,7 +1,7 @@
 language: node_js
 
 node_js:
-  - "0.10"
+  - "12.16.3"
 
 script: ./node_modules/.bin/testem ci -l phantomjs
 
