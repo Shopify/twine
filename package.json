@@ -27,9 +27,6 @@
     "url": "https://github.com/Shopify/twine/issues"
   },
   "homepage": "https://github.com/Shopify/twine",
-  "dependencies": {
-    "jquery": ">=2.1.1"
-  },
   "devDependencies": {
     "chai": "~1.9.1",
     "mocha": "~1.21.4",

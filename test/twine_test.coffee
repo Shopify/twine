@@ -261,16 +261,15 @@ suite "Twine", ->
 
   suite "data-bind-attribute attribute", ->
     test "should apply the given attribute when truthy", ->
-      testView = "<div data-bind-attribute=\"{a: key, b: false, c: 0, d: null, e: undefined, f: function() { return true }, g: '0', h: 'false'}\"></div>"
+      testView = "<div data-bind-attribute=\"{a: key, b: false, c: 0, d: null, e: undefined, f: '0', g: 'false'}\"></div>"
       node = setupView(testView, key: true)
       assert.equal node.getAttribute('a'), 'true'
       assert.isFalse node.hasAttribute('b')
       assert.isFalse node.hasAttribute('c')
       assert.isFalse node.hasAttribute('d')
       assert.isFalse node.hasAttribute('e')
-      assert.equal node.getAttribute('f'), 'true'
-      assert.equal node.getAttribute('g'), '0'
-      assert.equal node.getAttribute('h'), 'false'
+      assert.equal node.getAttribute('f'), '0'
+      assert.equal node.getAttribute('g'), 'false'
 
   suite "data-bind-indeterminate attribute", ->
     test "should set the indeterminate attribute", ->
@@ -1206,16 +1205,15 @@ suite "TwineLegacy", ->
 
   suite "bind-attribute attribute", ->
     test "should apply the given attribute when truthy", ->
-      testView = "<div bind-attribute=\"{a: key, b: false, c: 0, d: null, e: undefined, f: function() { return true }, g: '0', h: 'false'}\"></div>"
+      testView = "<div bind-attribute=\"{a: key, b: false, c: 0, d: null, e: undefined, f: '0', g: 'false'}\"></div>"
       node = setupView(testView, key: true)
       assert.equal node.getAttribute('a'), 'true'
       assert.isFalse node.hasAttribute('b')
       assert.isFalse node.hasAttribute('c')
       assert.isFalse node.hasAttribute('d')
       assert.isFalse node.hasAttribute('e')
-      assert.equal node.getAttribute('f'), 'true'
-      assert.equal node.getAttribute('g'), '0'
-      assert.equal node.getAttribute('h'), 'false'
+      assert.equal node.getAttribute('f'), '0'
+      assert.equal node.getAttribute('g'), 'false'
 
   suite "bind-checked attribute", ->
     test "should set the checked attribute", ->

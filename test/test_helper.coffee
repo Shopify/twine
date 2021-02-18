@@ -1,5 +1,3 @@
-jQuery = require('jquery')
-
 window.expect = chai.expect
 window.assert = chai.assert
 window.spy = sinon.spy
