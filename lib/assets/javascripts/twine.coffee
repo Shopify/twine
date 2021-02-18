@@ -462,19 +462,19 @@
 
   setupEventBinding = (eventName) ->
     Twine.bindingTypes["bind-event-#{eventName}"] = (node, context, definition) ->
-      onEventHandler = (event, data) ->
+      onEventHandler = (event) ->
         discardEvent = Twine.shouldDiscardEvent[eventName]?(event)
         if discardEvent || preventDefaultForEvent(event)
           event.preventDefault()
 
         return if discardEvent
 
-        wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data)
+        wrapFunctionString(definition, '$context,$root,$arrayPointers,event', node).call(node, context, rootContext, arrayPointersForNode(node, context), event)
         Twine.refreshImmediately()
-      jQuery(node).on eventName, onEventHandler
+      node.addEventListener(eventName, onEventHandler)
 
       return teardown: ->
-        jQuery(node).off eventName, onEventHandler
+        node.removeEventListener(eventName, onEventHandler)
 
   for eventName in ['click', 'dblclick', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'mousedown', 'mouseup',
     'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input',

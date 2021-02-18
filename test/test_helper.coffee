@@ -17,11 +17,6 @@ setup ->
 
   sandbox.xhrAssertions = 0
 
-window.nodeMatcher = (expectedNode) ->
-  expectedNode = jQuery(expectedNode)[0]
-  sinon.match (node) ->
-    expectedNode.isEqualNode(node)
-
 teardown ->
   window.sandbox.verifyAndRestore()
   window.sandbox = null
