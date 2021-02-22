@@ -37,7 +37,7 @@ suite "Twine", ->
       assert.equal node.value, "new"
 
       node.value = "value"
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       assert.equal node.value, "value"
 
     test "should bind 'true' keyword keypaths", ->
@@ -100,7 +100,7 @@ suite "Twine", ->
       assert.equal context.key, "two"
 
       rootNode.children[0].checked = true
-      triggerEvent rootNode.children[0], "change"
+      triggerEvent(rootNode.children[0], "change")
       assert.equal context.key, "one"
 
     test "should get the selected state of the right child in select elements", ->
@@ -119,11 +119,11 @@ suite "Twine", ->
       assert.equal context.key, 'two'
 
       options[0].selected = true
-      triggerEvent select, 'change'
+      triggerEvent(select, 'change')
       assert.equal context.key, 'one'
 
       options[2].selected = true
-      triggerEvent select, 'change'
+      triggerEvent(select, 'change')
       assert.equal context.key, 'three'
 
     test "should set the selected state of the right child in select elements", ->
@@ -190,7 +190,7 @@ suite "Twine", ->
       context.eventFunc.reset()
       bindGetter.reset()
 
-      triggerEvent node, "input"
+      triggerEvent(node, "input")
       sinon.assert.callOrder bindGetter, context.eventFunc
 
     test "should be the first binding to run on keyup event", ->
@@ -207,7 +207,7 @@ suite "Twine", ->
       context.eventFunc.reset()
       bindGetter.reset()
 
-      triggerEvent node, "keyup"
+      triggerEvent(node, "keyup")
       sinon.assert.callOrder bindGetter, context.eventFunc
 
     test "should be the first binding to run on change event", ->
@@ -224,7 +224,7 @@ suite "Twine", ->
       context.eventFunc.reset()
       bindGetter.reset()
 
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       sinon.assert.callOrder bindGetter, context.eventFunc
 
   suite "data-bind-show attribute", ->
@@ -348,7 +348,7 @@ suite "Twine", ->
       node = setupView(testView, context = fn: @spy())
       Twine.shouldDiscardEvent.click = -> true
 
-      triggerEvent node, "click"
+      triggerEvent(node, "click")
       assert.equal context.fn.callCount, 0
       Twine.shouldDiscardEvent = {}
 
@@ -371,7 +371,7 @@ suite "Twine", ->
       Twine.unbind(node)
       assert.isUndefined node.bindingId
 
-      triggerEvent node, "click"
+      triggerEvent(node, "click")
       assert.equal context.fn.callCount, 0
 
   suite "data-bind-event-click attribute", ->
@@ -379,7 +379,7 @@ suite "Twine", ->
       testView = "<div data-bind-event-click=\"fn()\"></div>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "click"
+      triggerEvent(node, "click")
       assert.isTrue context.fn.calledOnce
 
   suite "data-bind-event-submit attribute", ->
@@ -387,7 +387,7 @@ suite "Twine", ->
       testView = "<form data-bind-event-submit=\"fn()\"></form>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "submit"
+      triggerEvent(node, "submit")
       assert.isTrue context.fn.calledOnce
 
   suite "data-bind-event-change attribute", ->
@@ -396,7 +396,7 @@ suite "Twine", ->
       node = setupView(testView, context = fn: @spy())
       node.value = "new"
 
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       assert.isTrue context.fn.calledOnce
 
   suite "data-bind-event-error attribute", ->
@@ -404,7 +404,7 @@ suite "Twine", ->
       testView = "<img src=\"\" data-bind-event-error=\"fn()\">"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "error"
+      triggerEvent(node, "error")
       assert.isTrue context.fn.calledOnce
 
   suite "data-bind-event-done attribute", ->
@@ -412,7 +412,7 @@ suite "Twine", ->
       testView = "<form data-bind-event-done=\"fn()\"></form>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "done"
+      triggerEvent(node, "done")
       assert.isTrue context.fn.calledOnce
 
   suite "data-bind-event-fail attribute", ->
@@ -420,7 +420,7 @@ suite "Twine", ->
       testView = "<form data-bind-event-fail=\"fn()\"></form>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "fail"
+      triggerEvent(node, "fail")
       assert.isTrue context.fn.calledOnce
 
   suite "data-define attribute", ->
@@ -689,7 +689,7 @@ suite "Twine", ->
       node = setupView(testView, fn: ->)
       @spy(Twine, "refreshImmediately")
 
-      triggerEvent node, "click"
+      triggerEvent(node, "click")
       @clock.tick 100
       assert.isTrue Twine.refreshImmediately.calledOnce
 
@@ -699,7 +699,7 @@ suite "Twine", ->
       @spy Twine, "refreshImmediately"
 
       node.value = "new"
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       @clock.tick 100
       assert.isTrue Twine.refreshImmediately.calledOnce
 
@@ -708,7 +708,7 @@ suite "Twine", ->
       node = setupView(testView, {})
       @spy Twine, "refreshImmediately"
 
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       @clock.tick 100
       assert.isFalse Twine.refreshImmediately.called
 
@@ -786,7 +786,7 @@ suite "Twine", ->
       node = setupView(testView, context = {name: "foo"})
 
       node.value = "new"
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       assert.equal context.name, "foo"
 
     test "should not bind on previously binded nodes", ->
@@ -794,7 +794,7 @@ suite "Twine", ->
       node = setupView(testView, context = fn: @spy())
       Twine.bind()
 
-      triggerEvent node, "click"
+      triggerEvent(node, "click")
       assert.isTrue context.fn.calledOnce
 
   suite "Twine.afterBound", ->
@@ -865,7 +865,7 @@ suite "Twine", ->
       Twine.bind(node)
       Twine.reset({}, rootNode)
 
-      triggerEvent node, "click"
+      triggerEvent(node, "click")
       assert.equal context.fn.callCount, 0
 
   suite "register", ->
@@ -982,7 +982,7 @@ suite "TwineLegacy", ->
       assert.equal node.value, "new"
 
       node.value = "value"
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       assert.equal node.value, "value"
 
     test "should bind 'true' keyword keypaths", ->
@@ -1045,7 +1045,7 @@ suite "TwineLegacy", ->
       assert.equal context.key, "two"
 
       rootNode.children[0].checked = true
-      triggerEvent rootNode.children[0], "change"
+      triggerEvent(rootNode.children[0], "change")
       assert.equal context.key, "one"
 
     test "should get the selected state of the right child in select elements", ->
@@ -1064,11 +1064,11 @@ suite "TwineLegacy", ->
       assert.equal context.key, 'two'
 
       options[0].selected = true
-      triggerEvent select, 'change'
+      triggerEvent(select, 'change')
       assert.equal context.key, 'one'
 
       options[2].selected = true
-      triggerEvent select, 'change'
+      triggerEvent(select, 'change')
       assert.equal context.key, 'three'
 
     test "should set the selected state of the right child in select elements", ->
@@ -1135,7 +1135,7 @@ suite "TwineLegacy", ->
       context.eventFunc.reset()
       bindGetter.reset()
 
-      triggerEvent node, "input"
+      triggerEvent(node, "input")
       sinon.assert.callOrder bindGetter, context.eventFunc
 
     test "should be the first binding to run on keyup event", ->
@@ -1152,7 +1152,7 @@ suite "TwineLegacy", ->
       context.eventFunc.reset()
       bindGetter.reset()
 
-      triggerEvent node, "keyup"
+      triggerEvent(node, "keyup")
       sinon.assert.callOrder bindGetter, context.eventFunc
 
     test "should be the first binding to run on change event", ->
@@ -1169,7 +1169,7 @@ suite "TwineLegacy", ->
       context.eventFunc.reset()
       bindGetter.reset()
 
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       sinon.assert.callOrder bindGetter, context.eventFunc
 
   suite "bind-show attribute", ->
@@ -1275,7 +1275,7 @@ suite "TwineLegacy", ->
       node = setupView(testView, context = fn: @spy())
       Twine.shouldDiscardEvent.click = -> true
 
-      triggerEvent node, "click"
+      triggerEvent(node, "click")
       assert.equal context.fn.callCount, 0
       Twine.shouldDiscardEvent = {}
 
@@ -1298,7 +1298,7 @@ suite "TwineLegacy", ->
       Twine.unbind(node)
       assert.isUndefined node.bindingId
 
-      triggerEvent node, "click"
+      triggerEvent(node, "click")
       assert.equal context.fn.callCount, 0
 
   suite "bind-event-paste attribute", ->
@@ -1306,7 +1306,7 @@ suite "TwineLegacy", ->
       testView = "<div bind-event-paste=\"fn()\"></div>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "paste"
+      triggerEvent(node, "paste")
       assert.isTrue context.fn.calledOnce
 
   suite "bind-event-click attribute", ->
@@ -1314,7 +1314,7 @@ suite "TwineLegacy", ->
       testView = "<div bind-event-click=\"fn()\"></div>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "click"
+      triggerEvent(node, "click")
       assert.isTrue context.fn.calledOnce
 
   suite "bind-event-submit attribute", ->
@@ -1322,7 +1322,7 @@ suite "TwineLegacy", ->
       testView = "<form bind-event-submit=\"fn()\"></form>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "submit"
+      triggerEvent(node, "submit")
       assert.isTrue context.fn.calledOnce
 
   suite "bind-event-change attribute", ->
@@ -1331,7 +1331,7 @@ suite "TwineLegacy", ->
       node = setupView(testView, context = fn: @spy())
       node.value = "new"
 
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       assert.isTrue context.fn.calledOnce
 
   suite "bind-event-error attribute", ->
@@ -1339,7 +1339,7 @@ suite "TwineLegacy", ->
       testView = "<img src=\"\" bind-event-error=\"fn()\">"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "error"
+      triggerEvent(node, "error")
       assert.isTrue context.fn.calledOnce
 
   suite "bind-event-done attribute", ->
@@ -1347,7 +1347,7 @@ suite "TwineLegacy", ->
       testView = "<form bind-event-done=\"fn()\"></form>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "done"
+      triggerEvent(node, "done")
       assert.isTrue context.fn.calledOnce
 
   suite "bind-event-fail attribute", ->
@@ -1355,7 +1355,7 @@ suite "TwineLegacy", ->
       testView = "<form bind-event-fail=\"fn()\"></form>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "fail"
+      triggerEvent(node, "fail")
       assert.isTrue context.fn.calledOnce
 
   suite "define attribute", ->
@@ -1489,7 +1489,7 @@ suite "TwineLegacy", ->
       node = setupView(testView, fn: ->)
       @spy(Twine, "refreshImmediately")
 
-      triggerEvent node, "click"
+      triggerEvent(node, "click")
       @clock.tick 100
       assert.isTrue Twine.refreshImmediately.calledOnce
 
@@ -1499,7 +1499,7 @@ suite "TwineLegacy", ->
       @spy Twine, "refreshImmediately"
 
       node.value = "new"
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       @clock.tick 100
       assert.isTrue Twine.refreshImmediately.calledOnce
 
@@ -1508,7 +1508,7 @@ suite "TwineLegacy", ->
       node = setupView(testView, {})
       @spy Twine, "refreshImmediately"
 
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       @clock.tick 100
       assert.isFalse Twine.refreshImmediately.called
 
@@ -1548,7 +1548,7 @@ suite "TwineLegacy", ->
       node = setupView(testView, context = {name: "foo"})
 
       node.value = "new"
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       assert.equal context.name, "foo"
 
     test "should not bind on previously binded nodes", ->
@@ -1556,7 +1556,7 @@ suite "TwineLegacy", ->
       node = setupView(testView, context = fn: @spy())
       Twine.bind()
 
-      triggerEvent node, "click"
+      triggerEvent(node, "click")
       assert.isTrue context.fn.calledOnce
 
   suite "Twine.afterBound", ->
@@ -1627,7 +1627,7 @@ suite "TwineLegacy", ->
       Twine.bind(node)
       Twine.reset({}, rootNode)
 
-      triggerEvent node, "click"
+      triggerEvent(node, "click")
       assert.equal context.fn.callCount, 0
 
   test "context should return the node's context", ->
