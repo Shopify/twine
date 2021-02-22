@@ -1,15 +1,11 @@
 ((root, factory) ->
   if typeof root.define == 'function' && root.define.amd
-    root.define(['jquery'], factory)
+    root.define([], factory)
   else if typeof module == 'object' && module.exports
-    jQuery = if typeof window != 'undefined'
-    then require('jquery')
-    else require('jquery')(root)
-
-    module.exports = factory(jQuery)
+    module.exports = factory()
   else
-    root.Twine = factory(root.jQuery)
-)(this, (jQuery) ->
+    root.Twine = factory()
+)(this, ->
   Twine = {}
   Twine.shouldDiscardEvent = {}
 
@@ -362,13 +358,14 @@
         refreshContext()
 
       if twoWayBinding
+        events = ['input', 'keyup', 'change']
         changeHandler = ->
           return if getValue(context, keypath) == this[valueProp]
           refreshContext()
           Twine.refreshImmediately()
-        jQuery(node).on 'input keyup change', changeHandler
+        node.addEventListener(eventName, changeHandler) for eventName in events
         teardown = ->
-          jQuery(node).off 'input keyup change', changeHandler
+          node.removeEventListener(eventName, changeHandler) for eventName in events
 
       {refresh, teardown}
 
@@ -378,28 +375,23 @@
       return refresh: ->
         newValue = !fn.call(node, context, rootContext, arrayPointersForNode(node, context))
         return if newValue == lastValue
-        jQuery(node).toggleClass('hide', lastValue = newValue)
+        node.classList.toggle('hide', lastValue = newValue)
 
     'bind-class': (node, context, definition) ->
       fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node)
       lastValues = {}
-      $node = jQuery(node)
       return refresh: ->
         newValues = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
-        additions = []
-        removals = []
 
         for key, value of newValues
           newValue = newValues[key] = !!newValues[key]
-          currValue = lastValues[key] ? $node.hasClass(key)
+          currValue = lastValues[key] ? node.classList.contains(key)
           if currValue != newValue
             if newValue
-              additions.push(key)
+              node.classList.add(key)
             else
-              removals.push(key)
+              node.classList.remove(key)
 
-        $node.removeClass(removals.join(' ')) if removals.length
-        $node.addClass(additions.join(' ')) if additions.length
         lastValues = newValues
 
     'bind-attribute': (node, context, definition) ->
@@ -408,7 +400,10 @@
       return refresh: ->
         newValue = fn.call(node, context, rootContext, arrayPointersForNode(node, context))
         for key, value of newValue when lastValue[key] != value
-          jQuery(node).attr(key, value || null)
+          if (!value)
+            node.removeAttribute(key)
+          else
+            node.setAttribute(key, value)
         lastValue = newValue
 
     define: (node, context, definition) ->
@@ -462,7 +457,7 @@
 
   setupEventBinding = (eventName) ->
     Twine.bindingTypes["bind-event-#{eventName}"] = (node, context, definition) ->
-      onEventHandler = (event, data) ->
+      onEventHandler = (event, data = event.detail) ->
         discardEvent = Twine.shouldDiscardEvent[eventName]?(event)
         if discardEvent || preventDefaultForEvent(event)
           event.preventDefault()
@@ -471,10 +466,10 @@
 
         wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data)
         Twine.refreshImmediately()
-      jQuery(node).on eventName, onEventHandler
+      node.addEventListener(eventName, onEventHandler)
 
       return teardown: ->
-        jQuery(node).off eventName, onEventHandler
+        node.removeEventListener(eventName, onEventHandler)
 
   for eventName in ['click', 'dblclick', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'mousedown', 'mouseup',
     'submit', 'dragenter', 'dragleave', 'dragover', 'drop', 'drag', 'change', 'keypress', 'keydown', 'keyup', 'input',

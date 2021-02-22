@@ -2,16 +2,14 @@
   var slice = [].slice;
 
   (function(root, factory) {
-    var jQuery;
     if (typeof root.define === 'function' && root.define.amd) {
-      return root.define(['jquery'], factory);
+      return root.define([], factory);
     } else if (typeof module === 'object' && module.exports) {
-      jQuery = typeof window !== 'undefined' ? require('jquery') : require('jquery')(root);
-      return module.exports = factory(jQuery);
+      return module.exports = factory();
     } else {
-      return root.Twine = factory(root.jQuery);
+      return root.Twine = factory();
     }
-  })(this, function(jQuery) {
+  })(this, function() {
     var Twine, arrayPointersForNode, attribute, bind, bindingOrder, childrenForNode, currentBindingCallbacks, defineArray, elements, eventName, findOrCreateElementForNode, fireCustomChangeEvent, getContext, getIndexesForElement, getValue, isDataAttribute, isKeypath, j, k, keyWithArrayIndex, keypathForKey, keypathRegex, len, len1, nodeArrayIndexes, nodeCount, preventDefaultForEvent, ref, ref1, refreshCallbacks, refreshElement, refreshQueued, registry, requiresRegistry, rootContext, rootNode, setValue, setupEventBinding, setupPropertyBinding, stringifyNodeAttributes, valuePropertyForNode, wrapFunctionString;
     Twine = {};
     Twine.shouldDiscardEvent = {};
@@ -458,7 +456,7 @@
     };
     Twine.bindingTypes = {
       bind: function(node, context, definition) {
-        var changeHandler, checkedValueType, fn, keypath, lastValue, oldValue, refresh, refreshContext, teardown, twoWayBinding, value, valueProp;
+        var changeHandler, checkedValueType, eventName, events, fn, j, keypath, lastValue, len, oldValue, refresh, refreshContext, teardown, twoWayBinding, value, valueProp;
         valueProp = valuePropertyForNode(node);
         value = node[valueProp];
         lastValue = void 0;
@@ -503,6 +501,7 @@
           refreshContext();
         }
         if (twoWayBinding) {
+          events = ['input', 'keyup', 'change'];
           changeHandler = function() {
             if (getValue(context, keypath) === this[valueProp]) {
               return;
@@ -510,9 +509,18 @@
             refreshContext();
             return Twine.refreshImmediately();
           };
-          jQuery(node).on('input keyup change', changeHandler);
+          for (j = 0, len = events.length; j < len; j++) {
+            eventName = events[j];
+            node.addEventListener(eventName, changeHandler);
+          }
           teardown = function() {
-            return jQuery(node).off('input keyup change', changeHandler);
+            var k, len1, results;
+            results = [];
+            for (k = 0, len1 = events.length; k < len1; k++) {
+              eventName = events[k];
+              results.push(node.removeEventListener(eventName, changeHandler));
+            }
+            return results;
           };
         }
         return {
@@ -531,38 +539,29 @@
             if (newValue === lastValue) {
               return;
             }
-            return jQuery(node).toggleClass('hide', lastValue = newValue);
+            return node.classList.toggle('hide', lastValue = newValue);
           }
         };
       },
       'bind-class': function(node, context, definition) {
-        var $node, fn, lastValues;
+        var fn, lastValues;
         fn = wrapFunctionString(definition, '$context,$root,$arrayPointers', node);
         lastValues = {};
-        $node = jQuery(node);
         return {
           refresh: function() {
-            var additions, currValue, key, newValue, newValues, ref, removals, value;
+            var currValue, key, newValue, newValues, ref, value;
             newValues = fn.call(node, context, rootContext, arrayPointersForNode(node, context));
-            additions = [];
-            removals = [];
             for (key in newValues) {
               value = newValues[key];
               newValue = newValues[key] = !!newValues[key];
-              currValue = (ref = lastValues[key]) != null ? ref : $node.hasClass(key);
+              currValue = (ref = lastValues[key]) != null ? ref : node.classList.contains(key);
               if (currValue !== newValue) {
                 if (newValue) {
-                  additions.push(key);
+                  node.classList.add(key);
                 } else {
-                  removals.push(key);
+                  node.classList.remove(key);
                 }
               }
-            }
-            if (removals.length) {
-              $node.removeClass(removals.join(' '));
-            }
-            if (additions.length) {
-              $node.addClass(additions.join(' '));
             }
             return lastValues = newValues;
           }
@@ -579,7 +578,11 @@
             for (key in newValue) {
               value = newValue[key];
               if (lastValue[key] !== value) {
-                jQuery(node).attr(key, value || null);
+                if (!value) {
+                  node.removeAttribute(key);
+                } else {
+                  node.setAttribute(key, value);
+                }
               }
             }
             return lastValue = newValue;
@@ -659,6 +662,9 @@
         var onEventHandler;
         onEventHandler = function(event, data) {
           var base, discardEvent;
+          if (data == null) {
+            data = event.detail;
+          }
           discardEvent = typeof (base = Twine.shouldDiscardEvent)[eventName] === "function" ? base[eventName](event) : void 0;
           if (discardEvent || preventDefaultForEvent(event)) {
             event.preventDefault();
@@ -669,10 +675,10 @@
           wrapFunctionString(definition, '$context,$root,$arrayPointers,event,data', node).call(node, context, rootContext, arrayPointersForNode(node, context), event, data);
           return Twine.refreshImmediately();
         };
-        jQuery(node).on(eventName, onEventHandler);
+        node.addEventListener(eventName, onEventHandler);
         return {
           teardown: function() {
-            return jQuery(node).off(eventName, onEventHandler);
+            return node.removeEventListener(eventName, onEventHandler);
           }
         };
       };

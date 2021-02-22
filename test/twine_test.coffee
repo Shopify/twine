@@ -1,4 +1,3 @@
-jQuery = require('jquery')
 Twine = require('../dist/twine')
 
 suite "Twine", ->
@@ -38,7 +37,7 @@ suite "Twine", ->
       assert.equal node.value, "new"
 
       node.value = "value"
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       assert.equal node.value, "value"
 
     test "should bind 'true' keyword keypaths", ->
@@ -101,7 +100,7 @@ suite "Twine", ->
       assert.equal context.key, "two"
 
       rootNode.children[0].checked = true
-      triggerEvent rootNode.children[0], "change"
+      triggerEvent(rootNode.children[0], "change")
       assert.equal context.key, "one"
 
     test "should get the selected state of the right child in select elements", ->
@@ -120,11 +119,11 @@ suite "Twine", ->
       assert.equal context.key, 'two'
 
       options[0].selected = true
-      triggerEvent select, 'change'
+      triggerEvent(select, 'change')
       assert.equal context.key, 'one'
 
       options[2].selected = true
-      triggerEvent select, 'change'
+      triggerEvent(select, 'change')
       assert.equal context.key, 'three'
 
     test "should set the selected state of the right child in select elements", ->
@@ -191,7 +190,7 @@ suite "Twine", ->
       context.eventFunc.reset()
       bindGetter.reset()
 
-      triggerEvent node, "input"
+      triggerEvent(node, "input")
       sinon.assert.callOrder bindGetter, context.eventFunc
 
     test "should be the first binding to run on keyup event", ->
@@ -208,7 +207,7 @@ suite "Twine", ->
       context.eventFunc.reset()
       bindGetter.reset()
 
-      triggerEvent node, "keyup"
+      triggerEvent(node, "keyup")
       sinon.assert.callOrder bindGetter, context.eventFunc
 
     test "should be the first binding to run on change event", ->
@@ -225,7 +224,7 @@ suite "Twine", ->
       context.eventFunc.reset()
       bindGetter.reset()
 
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       sinon.assert.callOrder bindGetter, context.eventFunc
 
   suite "data-bind-show attribute", ->
@@ -262,16 +261,15 @@ suite "Twine", ->
 
   suite "data-bind-attribute attribute", ->
     test "should apply the given attribute when truthy", ->
-      testView = "<div data-bind-attribute=\"{a: key, b: false, c: 0, d: null, e: undefined, f: function() { return true }, g: '0', h: 'false'}\"></div>"
+      testView = "<div data-bind-attribute=\"{a: key, b: false, c: 0, d: null, e: undefined, f: '0', g: 'false'}\"></div>"
       node = setupView(testView, key: true)
       assert.equal node.getAttribute('a'), 'true'
       assert.isFalse node.hasAttribute('b')
       assert.isFalse node.hasAttribute('c')
       assert.isFalse node.hasAttribute('d')
       assert.isFalse node.hasAttribute('e')
-      assert.equal node.getAttribute('f'), 'true'
-      assert.equal node.getAttribute('g'), '0'
-      assert.equal node.getAttribute('h'), 'false'
+      assert.equal node.getAttribute('f'), '0'
+      assert.equal node.getAttribute('g'), 'false'
 
   suite "data-bind-indeterminate attribute", ->
     test "should set the indeterminate attribute", ->
@@ -350,16 +348,17 @@ suite "Twine", ->
       node = setupView(testView, context = fn: @spy())
       Twine.shouldDiscardEvent.click = -> true
 
-      jQuery(node).click()
+      triggerEvent(node, "click")
       assert.equal context.fn.callCount, 0
       Twine.shouldDiscardEvent = {}
 
     test "should pass along data if present", ->
       testView = "<form data-bind-event-submit=\"fn(data)\"></form>"
-      node = setupView(testView, context = fn: @spy())
       data = {test: 'bla123'}
+      node = setupView(testView, context = {fn: @spy()})
 
-      jQuery(node).trigger 'submit', data
+      event = new CustomEvent('submit', {detail: data})
+      node.dispatchEvent(event)
 
       assert.isTrue context.fn.calledOnce
       assert.isTrue context.fn.calledWith(data)
@@ -372,7 +371,7 @@ suite "Twine", ->
       Twine.unbind(node)
       assert.isUndefined node.bindingId
 
-      jQuery(node).click()
+      triggerEvent(node, "click")
       assert.equal context.fn.callCount, 0
 
   suite "data-bind-event-click attribute", ->
@@ -380,7 +379,7 @@ suite "Twine", ->
       testView = "<div data-bind-event-click=\"fn()\"></div>"
       node = setupView(testView, context = fn: @spy())
 
-      jQuery(node).click()
+      triggerEvent(node, "click")
       assert.isTrue context.fn.calledOnce
 
   suite "data-bind-event-submit attribute", ->
@@ -388,7 +387,7 @@ suite "Twine", ->
       testView = "<form data-bind-event-submit=\"fn()\"></form>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "submit"
+      triggerEvent(node, "submit")
       assert.isTrue context.fn.calledOnce
 
   suite "data-bind-event-change attribute", ->
@@ -397,7 +396,7 @@ suite "Twine", ->
       node = setupView(testView, context = fn: @spy())
       node.value = "new"
 
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       assert.isTrue context.fn.calledOnce
 
   suite "data-bind-event-error attribute", ->
@@ -405,7 +404,7 @@ suite "Twine", ->
       testView = "<img src=\"\" data-bind-event-error=\"fn()\">"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "error"
+      triggerEvent(node, "error")
       assert.isTrue context.fn.calledOnce
 
   suite "data-bind-event-done attribute", ->
@@ -413,7 +412,7 @@ suite "Twine", ->
       testView = "<form data-bind-event-done=\"fn()\"></form>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "done"
+      triggerEvent(node, "done")
       assert.isTrue context.fn.calledOnce
 
   suite "data-bind-event-fail attribute", ->
@@ -421,7 +420,7 @@ suite "Twine", ->
       testView = "<form data-bind-event-fail=\"fn()\"></form>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "fail"
+      triggerEvent(node, "fail")
       assert.isTrue context.fn.calledOnce
 
   suite "data-define attribute", ->
@@ -644,43 +643,33 @@ suite "Twine", ->
   suite "data-allow-default", ->
     test "should prevent default action for an anchor tag", ->
       testView = "<a data-bind-event-click=\"fn()\"></a>"
-      event = {type: 'click', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isTrue event.preventDefault.calledOnce
+      assert.isFalse triggerEvent(node, "click")
 
     test "should allow default action for an anchor tag when set to 1", ->
       testView = "<a data-bind-event-click=\"fn()\" data-allow-default=\"1\"></a>"
-      event = {type: 'click', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isFalse event.preventDefault.called
+      assert.isTrue triggerEvent(node, "click")
 
     test "should prevent default action for a submit event", ->
       testView = "<form action=\"#\" data-bind-event-submit=\"fn()\"></form>"
-      event = {type: 'submit', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isTrue event.preventDefault.calledOnce
+      assert.isFalse triggerEvent(node, "submit")
 
     test "should allow default action for a submit event when set to 1", ->
       testView = "<form action=\"#\" data-bind-event-submit=\"fn()\" data-allow-default=\"1\"></form>"
-      event = {type: 'submit', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isFalse event.preventDefault.called
+      assert.isTrue triggerEvent(node, "submit")
 
     test "should do nothing unless an anchor tag or submit event", ->
       testView = "<button data-bind-event-click=\"fn()\" data-allow-default=\"0\"></button>"
-      event = {type: 'click', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isFalse event.preventDefault.called
+      assert.isTrue triggerEvent(node, "click")
 
   suite "refresh", ->
     test "should defer calls and refresh once", ->
@@ -700,7 +689,7 @@ suite "Twine", ->
       node = setupView(testView, fn: ->)
       @spy(Twine, "refreshImmediately")
 
-      jQuery(node).click()
+      triggerEvent(node, "click")
       @clock.tick 100
       assert.isTrue Twine.refreshImmediately.calledOnce
 
@@ -710,7 +699,7 @@ suite "Twine", ->
       @spy Twine, "refreshImmediately"
 
       node.value = "new"
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       @clock.tick 100
       assert.isTrue Twine.refreshImmediately.calledOnce
 
@@ -719,7 +708,7 @@ suite "Twine", ->
       node = setupView(testView, {})
       @spy Twine, "refreshImmediately"
 
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       @clock.tick 100
       assert.isFalse Twine.refreshImmediately.called
 
@@ -797,7 +786,7 @@ suite "Twine", ->
       node = setupView(testView, context = {name: "foo"})
 
       node.value = "new"
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       assert.equal context.name, "foo"
 
     test "should not bind on previously binded nodes", ->
@@ -805,7 +794,7 @@ suite "Twine", ->
       node = setupView(testView, context = fn: @spy())
       Twine.bind()
 
-      jQuery(node).click()
+      triggerEvent(node, "click")
       assert.isTrue context.fn.calledOnce
 
   suite "Twine.afterBound", ->
@@ -876,7 +865,7 @@ suite "Twine", ->
       Twine.bind(node)
       Twine.reset({}, rootNode)
 
-      jQuery(node).click()
+      triggerEvent(node, "click")
       assert.equal context.fn.callCount, 0
 
   suite "register", ->
@@ -993,7 +982,7 @@ suite "TwineLegacy", ->
       assert.equal node.value, "new"
 
       node.value = "value"
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       assert.equal node.value, "value"
 
     test "should bind 'true' keyword keypaths", ->
@@ -1056,7 +1045,7 @@ suite "TwineLegacy", ->
       assert.equal context.key, "two"
 
       rootNode.children[0].checked = true
-      triggerEvent rootNode.children[0], "change"
+      triggerEvent(rootNode.children[0], "change")
       assert.equal context.key, "one"
 
     test "should get the selected state of the right child in select elements", ->
@@ -1075,11 +1064,11 @@ suite "TwineLegacy", ->
       assert.equal context.key, 'two'
 
       options[0].selected = true
-      triggerEvent select, 'change'
+      triggerEvent(select, 'change')
       assert.equal context.key, 'one'
 
       options[2].selected = true
-      triggerEvent select, 'change'
+      triggerEvent(select, 'change')
       assert.equal context.key, 'three'
 
     test "should set the selected state of the right child in select elements", ->
@@ -1146,7 +1135,7 @@ suite "TwineLegacy", ->
       context.eventFunc.reset()
       bindGetter.reset()
 
-      triggerEvent node, "input"
+      triggerEvent(node, "input")
       sinon.assert.callOrder bindGetter, context.eventFunc
 
     test "should be the first binding to run on keyup event", ->
@@ -1163,7 +1152,7 @@ suite "TwineLegacy", ->
       context.eventFunc.reset()
       bindGetter.reset()
 
-      triggerEvent node, "keyup"
+      triggerEvent(node, "keyup")
       sinon.assert.callOrder bindGetter, context.eventFunc
 
     test "should be the first binding to run on change event", ->
@@ -1180,7 +1169,7 @@ suite "TwineLegacy", ->
       context.eventFunc.reset()
       bindGetter.reset()
 
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       sinon.assert.callOrder bindGetter, context.eventFunc
 
   suite "bind-show attribute", ->
@@ -1217,16 +1206,15 @@ suite "TwineLegacy", ->
 
   suite "bind-attribute attribute", ->
     test "should apply the given attribute when truthy", ->
-      testView = "<div bind-attribute=\"{a: key, b: false, c: 0, d: null, e: undefined, f: function() { return true }, g: '0', h: 'false'}\"></div>"
+      testView = "<div bind-attribute=\"{a: key, b: false, c: 0, d: null, e: undefined, f: '0', g: 'false'}\"></div>"
       node = setupView(testView, key: true)
       assert.equal node.getAttribute('a'), 'true'
       assert.isFalse node.hasAttribute('b')
       assert.isFalse node.hasAttribute('c')
       assert.isFalse node.hasAttribute('d')
       assert.isFalse node.hasAttribute('e')
-      assert.equal node.getAttribute('f'), 'true'
-      assert.equal node.getAttribute('g'), '0'
-      assert.equal node.getAttribute('h'), 'false'
+      assert.equal node.getAttribute('f'), '0'
+      assert.equal node.getAttribute('g'), 'false'
 
   suite "bind-checked attribute", ->
     test "should set the checked attribute", ->
@@ -1287,16 +1275,17 @@ suite "TwineLegacy", ->
       node = setupView(testView, context = fn: @spy())
       Twine.shouldDiscardEvent.click = -> true
 
-      jQuery(node).click()
+      triggerEvent(node, "click")
       assert.equal context.fn.callCount, 0
       Twine.shouldDiscardEvent = {}
 
     test "should pass along data if present", ->
       testView = "<form bind-event-submit=\"fn(data)\"></form>"
-      node = setupView(testView, context = fn: @spy())
       data = {test: 'bla123'}
+      node = setupView(testView, context = {fn: @spy()})
 
-      jQuery(node).trigger 'submit', data
+      event = new CustomEvent('submit', {detail: data})
+      node.dispatchEvent(event)
 
       assert.isTrue context.fn.calledOnce
       assert.isTrue context.fn.calledWith(data)
@@ -1309,7 +1298,7 @@ suite "TwineLegacy", ->
       Twine.unbind(node)
       assert.isUndefined node.bindingId
 
-      jQuery(node).click()
+      triggerEvent(node, "click")
       assert.equal context.fn.callCount, 0
 
   suite "bind-event-paste attribute", ->
@@ -1317,7 +1306,7 @@ suite "TwineLegacy", ->
       testView = "<div bind-event-paste=\"fn()\"></div>"
       node = setupView(testView, context = fn: @spy())
 
-      jQuery(node).trigger 'paste'
+      triggerEvent(node, "paste")
       assert.isTrue context.fn.calledOnce
 
   suite "bind-event-click attribute", ->
@@ -1325,7 +1314,7 @@ suite "TwineLegacy", ->
       testView = "<div bind-event-click=\"fn()\"></div>"
       node = setupView(testView, context = fn: @spy())
 
-      jQuery(node).click()
+      triggerEvent(node, "click")
       assert.isTrue context.fn.calledOnce
 
   suite "bind-event-submit attribute", ->
@@ -1333,7 +1322,7 @@ suite "TwineLegacy", ->
       testView = "<form bind-event-submit=\"fn()\"></form>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "submit"
+      triggerEvent(node, "submit")
       assert.isTrue context.fn.calledOnce
 
   suite "bind-event-change attribute", ->
@@ -1342,7 +1331,7 @@ suite "TwineLegacy", ->
       node = setupView(testView, context = fn: @spy())
       node.value = "new"
 
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       assert.isTrue context.fn.calledOnce
 
   suite "bind-event-error attribute", ->
@@ -1350,7 +1339,7 @@ suite "TwineLegacy", ->
       testView = "<img src=\"\" bind-event-error=\"fn()\">"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "error"
+      triggerEvent(node, "error")
       assert.isTrue context.fn.calledOnce
 
   suite "bind-event-done attribute", ->
@@ -1358,7 +1347,7 @@ suite "TwineLegacy", ->
       testView = "<form bind-event-done=\"fn()\"></form>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "done"
+      triggerEvent(node, "done")
       assert.isTrue context.fn.calledOnce
 
   suite "bind-event-fail attribute", ->
@@ -1366,7 +1355,7 @@ suite "TwineLegacy", ->
       testView = "<form bind-event-fail=\"fn()\"></form>"
       node = setupView(testView, context = fn: @spy())
 
-      triggerEvent node, "fail"
+      triggerEvent(node, "fail")
       assert.isTrue context.fn.calledOnce
 
   suite "define attribute", ->
@@ -1424,83 +1413,63 @@ suite "TwineLegacy", ->
   suite "allow-default", ->
     test "should prevent default action for an anchor tag", ->
       testView = "<a bind-event-click=\"fn()\"></a>"
-      event = {type: 'click', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isTrue event.preventDefault.calledOnce
+      assert.isFalse triggerEvent(node, "click")
 
     test "should allow default action for an anchor tag when set to true", ->
       testView = "<a bind-event-click=\"fn()\" allow-default=\"true\"></a>"
-      event = {type: 'click', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isFalse event.preventDefault.called
+      assert.isTrue triggerEvent(node, "click")
 
     test "should allow default action for an anchor tag when set to anything but false", ->
       testView = "<a bind-event-click=\"fn()\" allow-default=\"1\"></a>"
-      event = {type: 'click', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isFalse event.preventDefault.called
+      assert.isTrue triggerEvent(node, "click")
 
     test "should prevent default action for anchor tag when set to false", ->
       testView = "<a bind-event-click=\"fn()\" allow-default=\"false\"></a>"
-      event = {type: 'click', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isTrue event.preventDefault.called
+      assert.isFalse triggerEvent(node, "click")
 
     test "should allow default action when allow-default is present", ->
       testView = "<a bind-event-click=\"fn()\" allow-default></a>"
-      event = {type: 'click', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isFalse event.preventDefault.called
+      assert.isTrue triggerEvent(node, "click")
 
     test "should prevent default action for a submit event", ->
       testView = "<form action=\"#\" bind-event-submit=\"fn()\"></form>"
-      event = {type: 'submit', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isTrue event.preventDefault.calledOnce
+      assert.isFalse triggerEvent(node, "submit")
 
     test "should allow default action for a submit event when set to true", ->
       testView = "<form action=\"#\" bind-event-submit=\"fn()\" allow-default=\"true\"></form>"
-      event = {type: 'submit', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isFalse event.preventDefault.called
+      assert.isTrue triggerEvent(node, "submit")
 
     test "should allow default action for a submit event when set to anything but false", ->
       testView = "<form action=\"#\" bind-event-submit=\"fn()\" allow-default=\"1\"></form>"
-      event = {type: 'submit', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isFalse event.preventDefault.called
+      assert.isTrue triggerEvent(node, "submit")
 
     test "should prevent default action for a submit event when set to false", ->
       testView = "<form action=\"#\" bind-event-submit=\"fn()\" allow-default=\"false\"></form>"
-      event = {type: 'submit', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isTrue event.preventDefault.calledOnce
+      assert.isFalse triggerEvent(node, "submit")
 
     test "should do nothing unless an anchor tag or submit event", ->
       testView = "<button bind-event-click=\"fn()\" allow-default=\"0\"></button>"
-      event = {type: 'click', preventDefault: @spy()}
       node = setupView(testView, fn: ->)
 
-      jQuery(node).trigger(event)
-      assert.isFalse event.preventDefault.called
+      assert.isTrue triggerEvent(node, "click")
 
   suite "refresh", ->
     test "should defer calls and refresh once", ->
@@ -1520,7 +1489,7 @@ suite "TwineLegacy", ->
       node = setupView(testView, fn: ->)
       @spy(Twine, "refreshImmediately")
 
-      jQuery(node).click()
+      triggerEvent(node, "click")
       @clock.tick 100
       assert.isTrue Twine.refreshImmediately.calledOnce
 
@@ -1530,7 +1499,7 @@ suite "TwineLegacy", ->
       @spy Twine, "refreshImmediately"
 
       node.value = "new"
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       @clock.tick 100
       assert.isTrue Twine.refreshImmediately.calledOnce
 
@@ -1539,7 +1508,7 @@ suite "TwineLegacy", ->
       node = setupView(testView, {})
       @spy Twine, "refreshImmediately"
 
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       @clock.tick 100
       assert.isFalse Twine.refreshImmediately.called
 
@@ -1579,7 +1548,7 @@ suite "TwineLegacy", ->
       node = setupView(testView, context = {name: "foo"})
 
       node.value = "new"
-      triggerEvent node, "change"
+      triggerEvent(node, "change")
       assert.equal context.name, "foo"
 
     test "should not bind on previously binded nodes", ->
@@ -1587,7 +1556,7 @@ suite "TwineLegacy", ->
       node = setupView(testView, context = fn: @spy())
       Twine.bind()
 
-      jQuery(node).click()
+      triggerEvent(node, "click")
       assert.isTrue context.fn.calledOnce
 
   suite "Twine.afterBound", ->
@@ -1658,7 +1627,7 @@ suite "TwineLegacy", ->
       Twine.bind(node)
       Twine.reset({}, rootNode)
 
-      jQuery(node).click()
+      triggerEvent(node, "click")
       assert.equal context.fn.callCount, 0
 
   test "context should return the node's context", ->
