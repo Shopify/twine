@@ -14,6 +14,13 @@ Gem::Specification.new do |spec|
   spec.files         = Dir["lib/**/*", "README.md", "LICENSE"]
   spec.require_paths = ["lib"]
 
+  spec.metadata = {
+    'bug_tracker_uri' => 'https://github.com/Shopify/twine/issues',
+    'changelog_uri' => 'https://github.com/Shopify/twine/releases',
+    'source_code_uri' => 'https://github.com/Shopify/twine',
+    'allowed_push_host' => 'https://rubygems.org'
+  }
+
   spec.add_dependency "coffee-rails"
   spec.add_dependency "railties"
 
